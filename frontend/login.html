@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login — Political Tea</title>
+
+    <style>
+
+        :root{
+            --ink:#0E0817;
+            --pink:#FF3EA6;
+            --violet:#8B5CF6;
+            --lime:#D7FF3D;
+            --cream:#FFF3DD;
+            --muted:#777080;
+            --white:#FFFFFF;
+            --border:#E7DFEA;
+            --danger:#E5484D;
+            --success:#16865B;
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    rgba(255,62,166,.12),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 90% 90%,
+                    rgba(139,92,246,.14),
+                    transparent 30%
+                ),
+                var(--cream);
+
+            min-height:100vh;
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            padding:25px;
+
+            color:var(--ink);
+        }
+
+        .page{
+            width:100%;
+            max-width:1050px;
+
+            min-height:650px;
+
+            display:grid;
+            grid-template-columns:1fr 1fr;
+
+            background:var(--white);
+
+            border:2px solid var(--ink);
+
+            border-radius:28px;
+
+            overflow:hidden;
+
+            box-shadow:12px 12px 0 var(--ink);
+        }
+
+        /* =========================================
+           LEFT SIDE
+        ========================================= */
+
+        .left{
+            background:var(--ink);
+            color:white;
+
+            padding:55px;
+
+            position:relative;
+
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+
+            overflow:hidden;
+        }
+
+        .left::before{
+            content:"";
+            position:absolute;
+
+            width:300px;
+            height:300px;
+
+            background:var(--pink);
+
+            border-radius:50%;
+
+            right:-150px;
+            top:-120px;
+
+            opacity:.85;
+        }
+
+        .left::after{
+            content:"";
+            position:absolute;
+
+            width:220px;
+            height:220px;
+
+            background:var(--violet);
+
+            border-radius:50%;
+
+            left:-120px;
+            bottom:-100px;
+
+            opacity:.75;
+        }
+
+        .brand{
+            position:relative;
+            z-index:2;
+
+            font-size:28px;
+            font-weight:900;
+            letter-spacing:-1px;
+        }
+
+        .brand span{
+            color:var(--pink);
+        }
+
+        .hero{
+            position:relative;
+            z-index:2;
+        }
+
+        .hero h1{
+            font-size:55px;
+            line-height:.95;
+            letter-spacing:-3px;
+
+            margin-bottom:25px;
+        }
+
+        .hero h1 span{
+            color:var(--lime);
+        }
+
+        .hero p{
+            font-size:17px;
+            line-height:1.6;
+
+            color:#D5CEDB;
+
+            max-width:430px;
+        }
+
+        .tea-card{
+            position:relative;
+            z-index:2;
+
+            margin-top:35px;
+
+            background:#191323;
+
+            border:1px solid #393142;
+
+            border-radius:18px;
+
+            padding:18px;
+        }
+
+        .tea-card small{
+            color:#AFA7B8;
+            font-size:11px;
+            font-weight:800;
+
+            text-transform:uppercase;
+            letter-spacing:1px;
+        }
+
+        .tea-card p{
+            margin-top:8px;
+
+            font-size:14px;
+            line-height:1.5;
+
+            color:white;
+        }
+
+        .footer-text{
+            position:relative;
+            z-index:2;
+
+            font-size:12px;
+            color:#81798B;
+        }
+
+        /* =========================================
+           RIGHT SIDE
+        ========================================= */
+
+        .right{
+            padding:55px 50px;
+
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+        }
+
+        .mobile-brand{
+            display:none;
+        }
+
+        .form-header{
+            margin-bottom:28px;
+        }
+
+        .form-header .eyebrow{
+            color:var(--violet);
+
+            font-size:11px;
+            font-weight:900;
+
+            text-transform:uppercase;
+            letter-spacing:1.5px;
+
+            margin-bottom:9px;
+        }
+
+        .form-header h2{
+            font-size:36px;
+            letter-spacing:-1.5px;
+
+            margin-bottom:8px;
+        }
+
+        .form-header p{
+            color:var(--muted);
+
+            font-size:14px;
+            line-height:1.5;
+        }
+
+        /* =========================================
+           FORMS
+        ========================================= */
+
+        .form-group{
+            margin-bottom:18px;
+        }
+
+        .form-group label{
+            display:block;
+
+            font-size:11px;
+            font-weight:900;
+
+            text-transform:uppercase;
+            letter-spacing:.8px;
+
+            margin-bottom:7px;
+        }
+
+        .input{
+            width:100%;
+
+            height:50px;
+
+            border:1.5px solid var(--border);
+
+            border-radius:11px;
+
+            padding:0 15px;
+
+            font-size:14px;
+
+            outline:none;
+
+            background:#FAF8FC;
+
+            transition:.2s;
+        }
+
+        .input:focus{
+            border-color:var(--violet);
+
+            background:white;
+
+            box-shadow:
+                0 0 0 3px rgba(139,92,246,.10);
+        }
+
+        .password-wrapper{
+            position:relative;
+        }
+
+        .password-wrapper .input{
+            padding-right:75px;
+        }
+
+        .toggle-password{
+            position:absolute;
+
+            right:12px;
+            top:50%;
+
+            transform:translateY(-50%);
+
+            border:0;
+            background:none;
+
+            color:var(--violet);
+
+            font-size:11px;
+            font-weight:900;
+
+            cursor:pointer;
+
+            text-transform:uppercase;
+        }
+
+        .btn{
+            width:100%;
+
+            height:51px;
+
+            border-radius:11px;
+
+            border:2px solid var(--ink);
+
+            font-size:14px;
+            font-weight:900;
+
+            cursor:pointer;
+
+            transition:.2s;
+        }
+
+        .btn:hover{
+            transform:translateY(-2px);
+        }
+
+        .btn:disabled{
+            opacity:.6;
+            cursor:not-allowed;
+            transform:none;
+        }
+
+        .btn-pink{
+            background:var(--pink);
+            color:var(--ink);
+        }
+
+        .btn-dark{
+            background:var(--ink);
+            color:white;
+        }
+
+        .btn-violet{
+            background:var(--violet);
+            color:white;
+        }
+
+        /* =========================================
+           MESSAGES
+        ========================================= */
+
+        .message{
+            display:none;
+
+            padding:12px 14px;
+
+            border-radius:10px;
+
+            font-size:13px;
+
+            margin-bottom:15px;
+
+            line-height:1.4;
+        }
+
+        .error{
+            background:#FFF0F0;
+            color:var(--danger);
+
+            border:1px solid #FFD0D0;
+        }
+
+        .success{
+            background:#ECFFF6;
+            color:var(--success);
+
+            border:1px solid #BDEDD8;
+        }
+
+        .switch{
+            text-align:center;
+
+            margin-top:20px;
+
+            color:var(--muted);
+
+            font-size:13px;
+        }
+
+        .switch button{
+            border:0;
+            background:none;
+
+            color:var(--violet);
+
+            font-weight:900;
+
+            cursor:pointer;
+
+            margin-left:3px;
+        }
+
+        .back-home{
+            text-align:center;
+
+            margin-top:25px;
+        }
+
+        .back-home a{
+            color:var(--muted);
+
+            font-size:12px;
+
+            text-decoration:none;
+        }
+
+        .back-home a:hover{
+            color:var(--violet);
+        }
+
+        /* =========================================
+           REGISTER
+        ========================================= */
+
+        #registerSection{
+            display:none;
+        }
+
+        .state-select{
+            appearance:auto;
+        }
+
+        /* =========================================
+           LOADING
+        ========================================= */
+
+        .loading{
+            display:none;
+
+            text-align:center;
+
+            margin-top:12px;
+
+            font-size:12px;
+
+            color:var(--muted);
+        }
+
+        .spinner{
+            width:15px;
+            height:15px;
+
+            border:2px solid #ddd;
+            border-top-color:var(--violet);
+
+            border-radius:50%;
+
+            display:inline-block;
+
+            vertical-align:middle;
+
+            margin-right:5px;
+
+            animation:spin .7s linear infinite;
+        }
+
+        @keyframes spin{
+            to{
+                transform:rotate(360deg);
+            }
+        }
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media(max-width:800px){
+
+            body{
+                padding:15px;
+            }
+
+            .page{
+                grid-template-columns:1fr;
+
+                min-height:auto;
+
+                box-shadow:7px 7px 0 var(--ink);
+            }
+
+            .left{
+                display:none;
+            }
+
+            .right{
+                padding:35px 25px;
+            }
+
+            .mobile-brand{
+                display:block;
+
+                font-size:25px;
+                font-weight:900;
+
+                margin-bottom:35px;
+            }
+
+            .mobile-brand span{
+                color:var(--pink);
+            }
+
+            .form-header h2{
+                font-size:31px;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- =========================================
+         LEFT BRANDING
+    ========================================= -->
+
+    <section class="left">
+
+        <div class="brand">
+            Political <span>Tea.</span>
+        </div>
+
+        <div class="hero">
+
+            <h1>
+                What's<br>
+                <span>brewing?</span>
+            </h1>
+
+            <p>
+                Your state. Your news. Your voice.
+                Get the latest political and public updates
+                happening around you.
+            </p>
+
+            <div class="tea-card">
+
+                <small>Political Tea</small>
+
+                <p>
+                    State-wise news, trending topics,
+                    public voices and videos — all in one place.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="footer-text">
+            Stay informed. Stay curious. ☕
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         RIGHT AUTH AREA
+    ========================================= -->
+
+    <section class="right">
+
+        <div class="mobile-brand">
+            Political <span>Tea.</span>
+        </div>
+
+
+        <!-- =====================================
+             LOGIN
+        ===================================== -->
+
+        <div id="loginSection">
+
+            <div class="form-header">
+
+                <div class="eyebrow">
+                    Welcome back
+                </div>
+
+                <h2>
+                    Login to Political Tea
+                </h2>
+
+                <p>
+                    Continue your journey and see what's
+                    brewing in your state.
+                </p>
+
+            </div>
+
+
+            <div
+                id="loginError"
+                class="message error">
+            </div>
+
+
+            <form
+                id="loginForm"
+                onsubmit="event.preventDefault(); loginUser();"
+            >
+
+                <div class="form-group">
+
+                    <label for="loginEmail">
+                        Email
+                    </label>
+
+                    <input
+                        id="loginEmail"
+                        class="input"
+                        type="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="loginPassword">
+                        Password
+                    </label>
+
+                    <div class="password-wrapper">
+
+                        <input
+                            id="loginPassword"
+                            class="input"
+                            type="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="toggle-password"
+                            onclick="togglePassword('loginPassword',this)"
+                        >
+                            Show
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="btn btn-pink"
+                >
+                    Login
+                </button>
+
+
+                <div
+                    id="loginLoading"
+                    class="loading"
+                >
+                    <span class="spinner"></span>
+                    Connecting to Political Tea...
+                </div>
+
+            </form>
+
+
+            <div class="switch">
+
+                Don't have an account?
+
+                <button
+                    type="button"
+                    onclick="showRegister()"
+                >
+                    Create one
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             REGISTER
+        ===================================== -->
+
+        <div id="registerSection">
+
+            <div class="form-header">
+
+                <div class="eyebrow">
+                    Join Political Tea
+                </div>
+
+                <h2>
+                    Create your account
+                </h2>
+
+                <p>
+                    Pick your state and we'll personalize
+                    your Political Tea feed.
+                </p>
+
+            </div>
+
+
+            <div
+                id="registerError"
+                class="message error"
+            ></div>
+
+
+            <div
+                id="registerSuccess"
+                class="message success"
+            ></div>
+
+
+            <form
+                id="registerForm"
+                onsubmit="event.preventDefault(); registerUser();"
+            >
+
+                <div class="form-group">
+
+                    <label for="registerName">
+                        Full Name
+                    </label>
+
+                    <input
+                        id="registerName"
+                        class="input"
+                        type="text"
+                        placeholder="Your name"
+                        autocomplete="name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerEmail">
+                        Email
+                    </label>
+
+                    <input
+                        id="registerEmail"
+                        class="input"
+                        type="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerPassword">
+                        Password
+                    </label>
+
+                    <div class="password-wrapper">
+
+                        <input
+                            id="registerPassword"
+                            class="input"
+                            type="password"
+                            placeholder="Minimum 6 characters"
+                            autocomplete="new-password"
+                            minlength="6"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="toggle-password"
+                            onclick="togglePassword('registerPassword',this)"
+                        >
+                            Show
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerState">
+                        Your State
+                    </label>
+
+                    <select
+                        id="registerState"
+                        class="input state-select"
+                        required
+                    >
+
+                        <option value="" selected disabled>
+                            Select your state
+                        </option>
+
+                        <option value="1">
+                            Uttar Pradesh
+                        </option>
+
+                        <option value="2">
+                            Delhi
+                        </option>
+
+                        <option value="3">
+                            Maharashtra
+                        </option>
+
+                        <option value="4">
+                            Rajasthan
+                        </option>
+
+                        <option value="5">
+                            Bihar
+                        </option>
+
+                        <option value="6">
+                            Jharkhand
+                        </option>
+
+                        <option value="7">
+                            Madhya Pradesh
+                        </option>
+
+                        <option value="8">
+                            West Bengal
+                        </option>
+
+                        <option value="9">
+                            Tamil Nadu
+                        </option>
+
+                        <option value="10">
+                            Karnataka
+                        </option>
+
+                        <option value="11">
+                            Gujarat
+                        </option>
+
+                        <option value="12">
+                            Haryana
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    id="registerButton"
+                    class="btn btn-violet"
+                >
+                    Create Account
+                </button>
+
+
+                <div
+                    id="registerLoading"
+                    class="loading"
+                >
+                    <span class="spinner"></span>
+                    Creating your account...
+                </div>
+
+            </form>
+
+
+            <div class="switch">
+
+                Already have an account?
+
+                <button
+                    type="button"
+                    onclick="showLogin()"
+                >
+                    Login
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="back-home">
+
+            <a href="tapri.html">
+                ← Back to the Tapri
+            </a>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   POLITICAL TEA AUTHENTICATION
+========================================================= */
+
+
+/* ---------------------------------------------------------
+   BACKEND URL
+--------------------------------------------------------- */
+
+const API_BASE_URL = "http://127.0.0.1:8000";
+
+
+/* ---------------------------------------------------------
+   TOKEN
+--------------------------------------------------------- */
+
+let authToken = localStorage.getItem("pt_token") || null;
+
+
+/* ---------------------------------------------------------
+   STATE MAP
+--------------------------------------------------------- */
+
+const STATE_NAMES = {
+
+    1: "Uttar Pradesh",
+    2: "Delhi",
+    3: "Maharashtra",
+    4: "Rajasthan",
+    5: "Bihar",
+    6: "Jharkhand",
+    7: "Madhya Pradesh",
+    8: "West Bengal",
+    9: "Tamil Nadu",
+    10: "Karnataka",
+    11: "Gujarat",
+    12: "Haryana"
+
+};
+
+
+/* =========================================================
+   UI HELPERS
+========================================================= */
+
+
+function showLogin(){
+
+    document.getElementById("loginSection").style.display = "block";
+
+    document.getElementById("registerSection").style.display = "none";
+
+    clearMessages();
+
+}
+
+
+function showRegister(){
+
+    document.getElementById("loginSection").style.display = "none";
+
+    document.getElementById("registerSection").style.display = "block";
+
+    clearMessages();
+
+}
+
+
+function clearMessages(){
+
+    const loginError =
+        document.getElementById("loginError");
+
+    const registerError =
+        document.getElementById("registerError");
+
+    const registerSuccess =
+        document.getElementById("registerSuccess");
+
+
+    loginError.style.display = "none";
+    loginError.textContent = "";
+
+
+    registerError.style.display = "none";
+    registerError.textContent = "";
+
+
+    registerSuccess.style.display = "none";
+    registerSuccess.textContent = "";
+
+}
+
+
+function showError(elementId,message){
+
+    const element =
+        document.getElementById(elementId);
+
+    element.textContent = message;
+
+    element.style.display = "block";
+
+}
+
+
+function showSuccess(elementId,message){
+
+    const element =
+        document.getElementById(elementId);
+
+    element.textContent = message;
+
+    element.style.display = "block";
+
+}
+
+
+/* =========================================================
+   PASSWORD VISIBILITY
+========================================================= */
+
+
+function togglePassword(inputId,button){
+
+    const input =
+        document.getElementById(inputId);
+
+    if(input.type === "password"){
+
+        input.type = "text";
+
+        button.textContent = "Hide";
+
+    }else{
+
+        input.type = "password";
+
+        button.textContent = "Show";
+
+    }
+
+}
+
+
+/* =========================================================
+   CHECK BACKEND
+========================================================= */
+
+
+async function checkBackend(){
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_BASE_URL}/docs`,
+                {
+                    method:"GET"
+                }
+            );
+
+        return response.ok;
+
+    }catch(error){
+
+        return false;
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+
+async function loginUser(){
+
+    clearMessages();
+
+
+    const email =
+        document
+        .getElementById("loginEmail")
+        .value
+        .trim();
+
+
+    const password =
+        document
+        .getElementById("loginPassword")
+        .value;
+
+
+    if(!email){
+
+        showError(
+            "loginError",
+            "Please enter your email."
+        );
+
+        return;
+
+    }
+
+
+    if(!password){
+
+        showError(
+            "loginError",
+            "Please enter your password."
+        );
+
+        return;
+
+    }
+
+
+    const button =
+        document.getElementById("loginButton");
+
+
+    const loading =
+        document.getElementById("loginLoading");
+
+
+    button.disabled = true;
+
+    button.textContent = "Logging in...";
+
+    loading.style.display = "block";
+
+
+    try{
+
+        /* -----------------------------------------
+           LOGIN REQUEST
+        ----------------------------------------- */
+
+        const response =
+            await fetch(
+                `${API_BASE_URL}/api/auth/login`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        email:email,
+
+                        password:password
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response
+            .json()
+            .catch(()=>({}));
+
+
+        /* -----------------------------------------
+           BACKEND ERROR
+        ----------------------------------------- */
+
+        if(!response.ok){
+
+            let message =
+                data.detail ||
+                "Invalid email or password.";
+
+
+            if(Array.isArray(message)){
+
+                message =
+                    message
+                    .map(error =>
+                        error.msg || "Invalid input"
+                    )
+                    .join(", ");
+
+            }
+
+
+            showError(
+                "loginError",
+                message
+            );
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           CHECK TOKEN
+        ----------------------------------------- */
+
+        if(!data.access_token){
+
+            showError(
+                "loginError",
+                "Login response did not contain an access token."
+            );
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           SAVE TOKEN
+        ----------------------------------------- */
+
+        authToken =
+            data.access_token;
+
+
+        localStorage.setItem(
+            "pt_token",
+            authToken
+        );
+
+
+        /* -----------------------------------------
+           VERIFY USER
+        ----------------------------------------- */
+
+        const user =
+            await getCurrentUser();
+
+
+        if(!user){
+
+            localStorage.removeItem("pt_token");
+
+            authToken = null;
+
+            showError(
+                "loginError",
+                "Login succeeded, but your account could not be verified."
+            );
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           SAVE USER INFORMATION
+        ----------------------------------------- */
+
+        localStorage.setItem(
+            "pt_user",
+            JSON.stringify(user)
+        );
+
+
+        if(user.state_id !== null &&
+           user.state_id !== undefined){
+
+            localStorage.setItem(
+                "pt_state_id",
+                String(user.state_id)
+            );
+
+            localStorage.setItem(
+                "pt_state_name",
+                STATE_NAMES[user.state_id] || ""
+            );
+
+        }
+
+
+        /* -----------------------------------------
+           SUCCESS
+        ----------------------------------------- */
+
+        button.textContent = "Success ✓";
+
+
+        /*
+           Small delay so user sees successful login.
+        */
+
+        setTimeout(()=>{
+
+            window.location.href = "index.html";
+
+        },500);
+
+
+    }catch(error){
+
+        console.error(
+            "LOGIN ERROR:",
+            error
+        );
+
+
+        showError(
+            "loginError",
+            "Cannot connect to the Political Tea server. Make sure FastAPI is running on port 8000."
+        );
+
+    }finally{
+
+        button.disabled = false;
+
+        if(button.textContent !== "Success ✓"){
+
+            button.textContent = "Login";
+
+        }
+
+        loading.style.display = "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   GET CURRENT USER
+========================================================= */
+
+
+async function getCurrentUser(){
+
+    if(!authToken){
+
+        return null;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_BASE_URL}/api/auth/me`,
+                {
+                    method:"GET",
+
+                    headers:{
+                        "Authorization":
+                            `Bearer ${authToken}`
+                    }
+                }
+            );
+
+
+        if(!response.ok){
+
+            return null;
+
+        }
+
+
+        const user =
+            await response
+            .json();
+
+
+        return user;
+
+
+    }catch(error){
+
+        console.error(
+            "USER VERIFICATION ERROR:",
+            error
+        );
+
+        return null;
+
+    }
+
+}
+
+
+/* =========================================================
+   REGISTER
+========================================================= */
+
+
+async function registerUser(){
+
+    clearMessages();
+
+
+    const name =
+        document
+        .getElementById("registerName")
+        .value
+        .trim();
+
+
+    const email =
+        document
+        .getElementById("registerEmail")
+        .value
+        .trim();
+
+
+    const password =
+        document
+        .getElementById("registerPassword")
+        .value;
+
+
+    const stateId =
+        Number(
+            document
+            .getElementById("registerState")
+            .value
+        );
+
+
+    /* -----------------------------------------
+       VALIDATION
+    ----------------------------------------- */
+
+    if(!name){
+
+        showError(
+            "registerError",
+            "Please enter your name."
+        );
+
+        return;
+
+    }
+
+
+    if(!email){
+
+        showError(
+            "registerError",
+            "Please enter your email."
+        );
+
+        return;
+
+    }
+
+
+    if(!password){
+
+        showError(
+            "registerError",
+            "Please create a password."
+        );
+
+        return;
+
+    }
+
+
+    if(password.length < 6){
+
+        showError(
+            "registerError",
+            "Password must contain at least 6 characters."
+        );
+
+        return;
+
+    }
+
+
+    if(!stateId){
+
+        showError(
+            "registerError",
+            "Please select your state."
+        );
+
+        return;
+
+    }
+
+
+    const button =
+        document.getElementById(
+            "registerButton"
+        );
+
+
+    const loading =
+        document.getElementById(
+            "registerLoading"
+        );
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "Creating account...";
+
+    loading.style.display = "block";
+
+
+    try{
+
+        /* -----------------------------------------
+           REGISTER REQUEST
+        ----------------------------------------- */
+
+        const response =
+            await fetch(
+                `${API_BASE_URL}/api/auth/register`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        name:name,
+
+                        email:email,
+
+                        password:password,
+
+                        state_id:stateId
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response
+            .json()
+            .catch(()=>({}));
+
+
+        /* -----------------------------------------
+           HANDLE ERROR
+        ----------------------------------------- */
+
+        if(!response.ok){
+
+            let message =
+                data.detail ||
+                "Registration failed.";
+
+
+            if(Array.isArray(message)){
+
+                message =
+                    message
+                    .map(error =>
+                        error.msg || "Invalid input"
+                    )
+                    .join(", ");
+
+            }
+
+
+            showError(
+                "registerError",
+                message
+            );
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           REGISTRATION SUCCESS
+        ----------------------------------------- */
+
+        showSuccess(
+            "registerSuccess",
+            "Account created successfully! You can now login."
+        );
+
+
+        /* Clear password */
+
+        document
+            .getElementById("registerPassword")
+            .value = "";
+
+
+        /*
+           Switch to login after short delay.
+        */
+
+        setTimeout(()=>{
+
+            document
+                .getElementById("loginEmail")
+                .value = email;
+
+
+            showLogin();
+
+        },1200);
+
+
+    }catch(error){
+
+        console.error(
+            "REGISTER ERROR:",
+            error
+        );
+
+
+        showError(
+            "registerError",
+            "Cannot connect to the Political Tea server. Make sure FastAPI is running on port 8000."
+        );
+
+    }finally{
+
+        button.disabled = false;
+
+        button.textContent =
+            "Create Account";
+
+        loading.style.display = "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   ALREADY LOGGED-IN USER
+========================================================= */
+
+
+async function checkExistingLogin(){
+
+    const existingToken =
+        localStorage.getItem("pt_token");
+
+
+    if(!existingToken){
+
+        return;
+
+    }
+
+
+    authToken =
+        existingToken;
+
+
+    const user =
+        await getCurrentUser();
+
+
+    if(user){
+
+        /*
+          User already has a valid session.
+          Send directly to the main website.
+        */
+
+        localStorage.setItem(
+            "pt_user",
+            JSON.stringify(user)
+        );
+
+
+        if(user.state_id !== null &&
+           user.state_id !== undefined){
+
+            localStorage.setItem(
+                "pt_state_id",
+                String(user.state_id)
+            );
+
+            localStorage.setItem(
+                "pt_state_name",
+                STATE_NAMES[user.state_id] || ""
+            );
+
+        }
+
+
+        window.location.href =
+            "index.html";
+
+    }else{
+
+        /*
+          Token is invalid/expired.
+        */
+
+        localStorage.removeItem(
+            "pt_token"
+        );
+
+        localStorage.removeItem(
+            "pt_user"
+        );
+
+        localStorage.removeItem(
+            "pt_state_id"
+        );
+
+        localStorage.removeItem(
+            "pt_state_name"
+        );
+
+        authToken = null;
+
+    }
+
+}
+
+
+/* =========================================================
+   PAGE START
+========================================================= */
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        checkExistingLogin();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
