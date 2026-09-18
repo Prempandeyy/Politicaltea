@@ -43,7 +43,46 @@ app.include_router(ai_trends_router)
 app.include_router(content_router)
 app.include_router(trending_router)
 app.include_router(recent_content_router)
+DEFAULT_STATES = [
+    {"id": 1, "name": "Uttar Pradesh"},
+    {"id": 2, "name": "Delhi"},
+    {"id": 3, "name": "Maharashtra"},
+    {"id": 4, "name": "Rajasthan"},
+    {"id": 5, "name": "Bihar"},
+    {"id": 6, "name": "Jharkhand"},
+    {"id": 7, "name": "Madhya Pradesh"},
+    {"id": 8, "name": "West Bengal"},
+    {"id": 9, "name": "Tamil Nadu"},
+    {"id": 10, "name": "Karnataka"},
+    {"id": 11, "name": "Gujarat"},
+    {"id": 12, "name": "Haryana"},
+]
 
+
+def seed_states():
+    db = Session(bind=engine)
+
+    try:
+        for state_data in DEFAULT_STATES:
+            existing_state = db.query(State).filter(
+                State.id == state_data["id"]
+            ).first()
+
+            if not existing_state:
+                db.add(
+                    State(
+                        id=state_data["id"],
+                        name=state_data["name"]
+                    )
+                )
+
+        db.commit()
+
+    finally:
+        db.close()
+
+
+seed_states()
 
 @app.get("/health", tags=["health"])
 def health():
