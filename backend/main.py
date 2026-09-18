@@ -25,7 +25,9 @@ Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://politicaltea-fy2f0rke8-prempandey812743gmailcoms-projects.vercel.app","https://politicaltea.vercel.app"],
+    allow_origins=["http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "https://politicaltea-fy2f0rke8-prempandey812743gmailcoms-projects.vercel.app",],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
