@@ -1,16 +1,24 @@
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.database import engine, Base
-from backend import models  # noqa: F401  (registers tables on Base)
+from backend.database import engine, Base, SessionLocal
+from backend import models  # Register all models
+
+from backend.models import State
 
 from backend.routes.auth import router as auth_router
 from backend.routes.ai_trends import router as ai_trends_router
 from backend.routes.content import router as content_router
 from backend.routes.trending import router as trending_router
-from backend.routes.recent_content import router as recent_content_router
-from backend.database import SessionLocal
-from backend.models import State
+from backend.routes.recent_content import (
+    router as recent_content_router
+)
+
+
+# =========================================
+# DEFAULT STATES
+# =========================================
 
 DEFAULT_STATES = [
     (1, "Uttar Pradesh"),
@@ -27,23 +35,47 @@ DEFAULT_STATES = [
     (12, "Haryana"),
 ]
 
+
+# =========================================
+# SEED STATES
+# =========================================
+
 def seed_states():
     db = SessionLocal()
+
     try:
         for state_id, name in DEFAULT_STATES:
-            exists = db.query(State).filter(
-                State.id == state_id
-            ).first()
 
-            if not exists:
-                db.add(State(id=state_id, name=name))
+            existing_state = (
+                db.query(State)
+                .filter(State.id == state_id)
+                .first()
+            )
+
+            if not existing_state:
+                db.add(
+                    State(
+                        id=state_id,
+                        name=name
+                    )
+                )
 
         db.commit()
-    except Exception:
+
+        print("Default states seeded successfully.")
+
+    except Exception as e:
         db.rollback()
+        print(f"State seeding failed: {e}")
         raise
+
     finally:
         db.close()
+
+
+# =========================================
+# FASTAPI APP
+# =========================================
 
 app = FastAPI(
     title="Political Tea API",
@@ -54,12 +86,27 @@ app = FastAPI(
 )
 
 
+# =========================================
+# DATABASE INITIALIZATION
+# =========================================
+
 Base.metadata.create_all(bind=engine)
 
+# IMPORTANT: Insert default states after tables are created
+seed_states()
+
+
+# =========================================
+# CORS
+# =========================================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://politicaltea-fy2f0rke8-prempandey812743gmailcoms-projects.vercel.app"],
+    allow_origins=[
+        "https://politicaltea-fy2f0rke8-prempandey812743gmailcoms-projects.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,6 +124,12 @@ app.include_router(trending_router)
 app.include_router(recent_content_router)
 
 
+# =========================================
+# HEALTH CHECK
+# =========================================
+
 @app.get("/health", tags=["health"])
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "healthy"
+    }
