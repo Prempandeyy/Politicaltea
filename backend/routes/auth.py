@@ -1,4 +1,3 @@
-
 from fastapi import (
     APIRouter,
     Depends,
@@ -7,7 +6,9 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+
+import bcrypt
+
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
@@ -41,30 +42,6 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 
 # =========================================
-# PASSWORD HASHING
-# =========================================
-
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-)
-
-
-def hash_password(password: str):
-    return pwd_context.hash(password)
-
-
-def verify_password(
-    plain_password: str,
-    hashed_password: str,
-):
-    return pwd_context.verify(
-        plain_password,
-        hashed_password,
-    )
-
-
-# =========================================
 # JWT SETTINGS
 # =========================================
 
@@ -74,7 +51,56 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 # =========================================
-# CREATE ACCESS TOKEN
+# PASSWORD HASHING
+# =========================================
+
+def hash_password(password: str) -> str:
+    """
+    Hash password using bcrypt directly.
+
+    bcrypt supports maximum 72 bytes.
+    We explicitly validate the password instead
+    of allowing a server-side 500 error.
+    """
+
+    password_bytes = password.encode("utf-8")
+
+    if len(password_bytes) > 72:
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be 72 bytes or fewer.",
+        )
+
+    hashed = bcrypt.hashpw(
+        password_bytes,
+        bcrypt.gensalt()
+    )
+
+    return hashed.decode("utf-8")
+
+
+def verify_password(
+    plain_password: str,
+    hashed_password: str,
+) -> bool:
+
+    password_bytes = plain_password.encode("utf-8")
+
+    if len(password_bytes) > 72:
+        return False
+
+    try:
+        return bcrypt.checkpw(
+            password_bytes,
+            hashed_password.encode("utf-8"),
+        )
+
+    except (ValueError, TypeError):
+        return False
+
+
+# =========================================
+# CREATE JWT
 # =========================================
 
 def create_access_token(data: dict):
@@ -158,6 +184,10 @@ def register(
     db: Session = Depends(get_db),
 ):
 
+    # -------------------------------------
+    # Check existing email
+    # -------------------------------------
+
     existing_user = (
         db.query(User)
         .filter(User.email == user.email)
@@ -171,9 +201,33 @@ def register(
             detail="Email already registered",
         )
 
+    # -------------------------------------
+    # Validate password
+    # -------------------------------------
+
+    if not user.password:
+        raise HTTPException(
+            status_code=400,
+            detail="Password cannot be empty.",
+        )
+
+    if len(user.password.encode("utf-8")) > 72:
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be 72 bytes or fewer.",
+        )
+
+    # -------------------------------------
+    # Hash password
+    # -------------------------------------
+
     hashed_password = hash_password(
         user.password
     )
+
+    # -------------------------------------
+    # Create user
+    # -------------------------------------
 
     new_user = User(
         name=user.name,
@@ -188,10 +242,14 @@ def register(
         db.commit()
         db.refresh(new_user)
 
-    except Exception:
+    except Exception as e:
 
         db.rollback()
-        raise
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not create user: {str(e)}",
+        )
 
     return new_user
 
@@ -209,6 +267,10 @@ def login(
     db: Session = Depends(get_db),
 ):
 
+    # -------------------------------------
+    # Find user
+    # -------------------------------------
+
     existing_user = (
         db.query(User)
         .filter(User.email == user.email)
@@ -222,6 +284,10 @@ def login(
             detail="Invalid email or password",
         )
 
+    # -------------------------------------
+    # Verify password
+    # -------------------------------------
+
     password_correct = verify_password(
         user.password,
         existing_user.password,
@@ -233,6 +299,10 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+
+    # -------------------------------------
+    # Create JWT
+    # -------------------------------------
 
     access_token = create_access_token({
         "sub": str(existing_user.id)
