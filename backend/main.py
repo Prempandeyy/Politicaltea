@@ -105,7 +105,7 @@ app.add_middleware(
     allow_origins=[
         "https://politicaltea-fy2f0rke8-prempandey812743gmailcoms-projects.vercel.app",
         "http://localhost:3000",
-        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3000","https://politicaltea.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
