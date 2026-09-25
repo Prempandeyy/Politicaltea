@@ -9,7 +9,41 @@ from backend.routes.ai_trends import router as ai_trends_router
 from backend.routes.content import router as content_router
 from backend.routes.trending import router as trending_router
 from backend.routes.recent_content import router as recent_content_router
+from backend.database import SessionLocal
+from backend.models import State
 
+DEFAULT_STATES = [
+    (1, "Uttar Pradesh"),
+    (2, "Delhi"),
+    (3, "Maharashtra"),
+    (4, "Rajasthan"),
+    (5, "Bihar"),
+    (6, "Jharkhand"),
+    (7, "Madhya Pradesh"),
+    (8, "West Bengal"),
+    (9, "Tamil Nadu"),
+    (10, "Karnataka"),
+    (11, "Gujarat"),
+    (12, "Haryana"),
+]
+
+def seed_states():
+    db = SessionLocal()
+    try:
+        for state_id, name in DEFAULT_STATES:
+            exists = db.query(State).filter(
+                State.id == state_id
+            ).first()
+
+            if not exists:
+                db.add(State(id=state_id, name=name))
+
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 app = FastAPI(
     title="Political Tea API",
