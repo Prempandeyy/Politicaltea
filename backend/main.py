@@ -33,6 +33,7 @@ app.add_middleware(
         "http://localhost:8000",
         "https://politicaltea.vercel.app",
         "https://politicaltea-fy2f0rke8-prempandey812743gmailcoms-projects.vercel.app",
+        "https://politicaltea-hwhxzg8l8-prempandey812743gmailcoms-projects.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
