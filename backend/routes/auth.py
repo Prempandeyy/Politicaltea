@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta
+
+import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 from jose import jwt, JWTError
-from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models import User
@@ -16,11 +17,19 @@ from backend.schemas import (
 )
 
 
+# =========================================================
+# ROUTER
+# =========================================================
+
 router = APIRouter(
     prefix="/api/auth",
     tags=["Authentication"]
 )
 
+
+# =========================================================
+# OAUTH2
+# =========================================================
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/api/auth/login"
@@ -28,18 +37,13 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 
 # =========================================================
-# PASSWORD HASHING
+# PASSWORD HASHING - DIRECT BCRYPT
 # =========================================================
-
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
-
 
 def hash_password(password: str) -> str:
     password_bytes = password.encode("utf-8")
 
+    # bcrypt supports maximum 72 bytes
     if len(password_bytes) > 72:
         raise HTTPException(
             status_code=400,
@@ -61,6 +65,7 @@ def verify_password(
 
     password_bytes = plain_password.encode("utf-8")
 
+    # bcrypt supports maximum 72 bytes
     if len(password_bytes) > 72:
         return False
 
@@ -69,18 +74,9 @@ def verify_password(
             password_bytes,
             hashed_password.encode("utf-8")
         )
+
     except (ValueError, TypeError):
         return False
-
-
-def verify_password(
-    plain_password: str,
-    hashed_password: str
-):
-    return pwd_context.verify(
-        plain_password,
-        hashed_password
-    )
 
 
 # =========================================================
@@ -147,7 +143,7 @@ def get_current_user(
 
         user_id = int(user_id)
 
-    except (JWTError, ValueError):
+    except (JWTError, ValueError, TypeError):
 
         raise credentials_exception
 
@@ -167,14 +163,18 @@ def get_current_user(
 
 @router.post(
     "/register",
-    response_model=UserResponse
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED
 )
 def register(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
 
-    # Check if email already exists
+    # -----------------------------------------------------
+    # Check existing email
+    # -----------------------------------------------------
+
     existing_user = db.query(User).filter(
         User.email == user.email
     ).first()
@@ -186,12 +186,38 @@ def register(
             detail="Email already registered"
         )
 
+    # -----------------------------------------------------
+    # Validate password
+    # -----------------------------------------------------
+
+    if not user.password:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Password cannot be empty."
+        )
+
+    password_bytes = user.password.encode("utf-8")
+
+    if len(password_bytes) > 72:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be 72 bytes or fewer."
+        )
+
+    # -----------------------------------------------------
     # Hash password
+    # -----------------------------------------------------
+
     hashed_password = hash_password(
         user.password
     )
 
+    # -----------------------------------------------------
     # Create user
+    # -----------------------------------------------------
+
     new_user = User(
         name=user.name,
         email=user.email,
@@ -199,9 +225,20 @@ def register(
         state_id=user.state_id
     )
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+    except Exception as error:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not create user: {error}"
+        )
 
     return new_user
 
@@ -219,7 +256,10 @@ def login(
     db: Session = Depends(get_db)
 ):
 
+    # -----------------------------------------------------
     # Find user
+    # -----------------------------------------------------
+
     existing_user = db.query(User).filter(
         User.email == user.email
     ).first()
@@ -231,7 +271,10 @@ def login(
             detail="Invalid email or password"
         )
 
-    # Verify password
+    # -----------------------------------------------------
+    # Verify password using DIRECT BCRYPT
+    # -----------------------------------------------------
+
     password_correct = verify_password(
         user.password,
         existing_user.password
@@ -244,7 +287,10 @@ def login(
             detail="Invalid email or password"
         )
 
+    # -----------------------------------------------------
     # Create JWT
+    # -----------------------------------------------------
+
     access_token = create_access_token({
         "sub": str(existing_user.id)
     })
@@ -296,7 +342,7 @@ def update_profile(
         )
 
     # -----------------------------------------------------
-    # Check if email is already used by another user
+    # Check email
     # -----------------------------------------------------
 
     existing_user = db.query(User).filter(
@@ -319,10 +365,11 @@ def update_profile(
     current_user.email = user_data.email
 
     if user_data.state_id is not None:
+
         current_user.state_id = user_data.state_id
 
     # -----------------------------------------------------
-    # Save changes
+    # Save
     # -----------------------------------------------------
 
     db.commit()
