@@ -9,6 +9,263 @@
 
 <style>
 
+/* =========================================================
+   TEA CHATBOT
+   ========================================================= */
+
+.tea-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 82px;
+    width: 58px;
+    height: 58px;
+    border: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--violet));
+    color: white;
+    font-size: 25px;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(118, 87, 255, .30);
+    z-index: 900;
+    transition: .2s ease;
+}
+
+.tea-fab:hover {
+    transform: translateY(-3px) scale(1.04);
+}
+
+.tea-fab span {
+    position: absolute;
+    right: -3px;
+    top: -5px;
+    background: var(--lime);
+    color: var(--ink);
+    font-size: 9px;
+    font-weight: 900;
+    padding: 4px 6px;
+    border-radius: 20px;
+}
+
+
+/* Chat window */
+
+.tea-chat {
+    position: fixed;
+    right: 24px;
+    bottom: 150px;
+    width: 390px;
+    height: 560px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: 0 25px 70px rgba(20, 10, 40, .20);
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.tea-chat.show {
+    display: flex;
+}
+
+
+/* Header */
+
+.tea-header {
+    padding: 16px 18px;
+    background: linear-gradient(
+        135deg,
+        var(--pink),
+        var(--violet)
+    );
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tea-header-left {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.tea-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    display: grid;
+    place-items: center;
+    font-size: 21px;
+}
+
+.tea-title {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.tea-subtitle {
+    font-size: 10px;
+    opacity: .85;
+    margin-top: 2px;
+}
+
+.tea-close {
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+
+/* Messages */
+
+.tea-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #faf8fc;
+}
+
+.tea-message {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.tea-message.user {
+    justify-content: flex-end;
+}
+
+.tea-bubble {
+    max-width: 82%;
+    padding: 11px 13px;
+    border-radius: 15px;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+.tea-message.assistant .tea-bubble {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--ink);
+    border-bottom-left-radius: 5px;
+}
+
+.tea-message.user .tea-bubble {
+    background: var(--violet);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+
+/* Typing */
+
+.tea-typing {
+    display: none;
+    padding: 0 16px 10px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.tea-typing.show {
+    display: block;
+}
+
+
+/* Suggestions */
+
+.tea-suggestions {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding: 9px 12px;
+    border-top: 1px solid var(--border);
+    background: white;
+}
+
+.tea-suggestion {
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    background: #faf8fc;
+    color: var(--ink);
+    padding: 7px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tea-suggestion:hover {
+    border-color: var(--violet);
+}
+
+
+/* Input */
+
+.tea-input-area {
+    padding: 11px;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+}
+
+.tea-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    background: #faf8fc;
+    border-radius: 14px;
+    padding: 11px 13px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.tea-input:focus {
+    border-color: var(--violet);
+}
+
+.tea-send {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 13px;
+    background: var(--pink);
+    color: white;
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.tea-send:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+    .tea-fab {
+        right: 16px;
+        bottom: 75px;
+    }
+
+    .tea-chat {
+        right: 10px;
+        left: 10px;
+        bottom: 70px;
+        width: auto;
+        height: calc(100vh - 100px);
+        max-height: 650px;
+        border-radius: 20px;
+    }
+}
+
 :root{
     --ink:#0d0817;
     --bg:#f7f2ff;
@@ -1939,7 +2196,271 @@ your state, in one place.
 </div>
 
 </div>
+<!-- =====================================
+     PROFILE MODAL
+===================================== -->
 
+<div
+    class="modal"
+    id="profileModal"
+>
+
+<div
+    class="modal-box"
+    style="max-width:560px"
+>
+
+<div class="modal-head">
+
+<div>
+    <h2>👤 My Profile</h2>
+
+    <p
+        style="
+            color:var(--muted);
+            font-size:12px;
+            margin-top:4px
+        "
+    >
+        Your Political Tea profile
+    </p>
+</div>
+
+<button
+    class="close"
+    onclick="closeModal('profileModal')"
+>
+    ✕
+</button>
+
+</div>
+
+
+<!-- PROFILE VIEW -->
+
+<div id="profileView">
+
+    <div
+        style="
+            display:flex;
+            align-items:center;
+            gap:15px;
+            padding:18px;
+            background:#f8f4fb;
+            border-radius:18px;
+            margin-bottom:18px;
+        "
+    >
+
+        <div
+            id="profileLargeAvatar"
+            class="avatar"
+            style="
+                width:65px;
+                height:65px;
+                font-size:25px;
+                flex:none;
+            "
+        >
+            P
+        </div>
+
+        <div>
+
+            <h3 id="profileName">
+                User
+            </h3>
+
+            <p
+                id="profileEmail"
+                style="
+                    color:var(--muted);
+                    font-size:13px;
+                    margin-top:3px;
+                "
+            >
+                email@example.com
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>
+            NAME
+        </label>
+
+        <div
+            id="profileDisplayName"
+            style="
+                padding:12px 14px;
+                background:#f8f4fb;
+                border-radius:12px;
+                font-size:14px;
+            "
+        >
+            —
+        </div>
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>
+            EMAIL
+        </label>
+
+        <div
+            id="profileDisplayEmail"
+            style="
+                padding:12px 14px;
+                background:#f8f4fb;
+                border-radius:12px;
+                font-size:14px;
+            "
+        >
+            —
+        </div>
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>
+            STATE
+        </label>
+
+        <div
+            id="profileDisplayState"
+            style="
+                padding:12px 14px;
+                background:#f8f4fb;
+                border-radius:12px;
+                font-size:14px;
+            "
+        >
+            —
+        </div>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+        <button
+            class="btn btn-light"
+            onclick="logout()"
+        >
+            Logout
+        </button>
+
+        <button
+            class="btn btn-pink"
+            onclick="openEditProfile()"
+        >
+            ✏️ Edit Profile
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- EDIT PROFILE -->
+
+<div
+    id="profileEditView"
+    style="display:none"
+>
+
+    <div class="form-group">
+
+        <label>
+            NAME
+        </label>
+
+        <input
+            class="form-input"
+            id="editProfileName"
+            placeholder="Enter your name"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>
+            EMAIL
+        </label>
+
+        <input
+            class="form-input"
+            id="editProfileEmail"
+            type="email"
+            placeholder="Enter your email"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>
+            STATE
+        </label>
+
+        <select
+            class="form-select"
+            id="editProfileState"
+        >
+
+            <option value="1">Uttar Pradesh</option>
+            <option value="2">Delhi</option>
+            <option value="3">Maharashtra</option>
+            <option value="4">Rajasthan</option>
+            <option value="5">Bihar</option>
+            <option value="6">Jharkhand</option>
+            <option value="7">Madhya Pradesh</option>
+            <option value="8">West Bengal</option>
+            <option value="9">Tamil Nadu</option>
+            <option value="10">Karnataka</option>
+            <option value="11">Gujarat</option>
+            <option value="12">Haryana</option>
+
+        </select>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+        <button
+            class="btn btn-light"
+            onclick="cancelEditProfile()"
+        >
+            Cancel
+        </button>
+
+        <button
+            class="btn btn-pink"
+            onclick="saveProfile()"
+        >
+            Save Changes
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+</div>
 
 
 <!-- =====================================
@@ -1973,7 +2494,7 @@ your state, in one place.
    http://127.0.0.1:8000
 */
 
-const API_BASE_URL = "https://politicaltea.onrender.com";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 
 /* =====================================================
@@ -4253,6 +4774,344 @@ function getCurrentUserName(){
 
 }
 
+/* =====================================================
+   PROFILE
+===================================================== */
+
+function openProfileModal(){
+
+    const user = getStoredUser();
+
+    if(!user || !user.name){
+
+        showToast("Unable to load profile.");
+
+        return;
+    }
+
+    renderProfile(user);
+
+    document.getElementById(
+        "profileView"
+    ).style.display = "block";
+
+    document.getElementById(
+        "profileEditView"
+    ).style.display = "none";
+
+    document.getElementById(
+        "profileModal"
+    ).classList.add("show");
+
+}
+
+
+function renderProfile(user){
+
+    const name =
+        user.name ||
+        user.full_name ||
+        user.username ||
+        "User";
+
+    const email =
+        user.email ||
+        "No email";
+
+    const stateId =
+        user.state_id;
+
+    const state =
+        STATE_MAP[stateId] ||
+        "Not selected";
+
+
+    document.getElementById(
+        "profileName"
+    ).textContent = name;
+
+
+    document.getElementById(
+        "profileEmail"
+    ).textContent = email;
+
+
+    document.getElementById(
+        "profileDisplayName"
+    ).textContent = name;
+
+
+    document.getElementById(
+        "profileDisplayEmail"
+    ).textContent = email;
+
+
+    document.getElementById(
+        "profileDisplayState"
+    ).textContent = state;
+
+
+    document.getElementById(
+        "profileLargeAvatar"
+    ).textContent =
+        getAvatarLetter(name);
+
+}
+
+
+function openEditProfile(){
+
+    const user = getStoredUser();
+
+    document.getElementById(
+        "editProfileName"
+    ).value =
+        user.name ||
+        user.full_name ||
+        user.username ||
+        "";
+
+
+    document.getElementById(
+        "editProfileEmail"
+    ).value =
+        user.email ||
+        "";
+
+
+    document.getElementById(
+        "editProfileState"
+    ).value =
+        String(
+            user.state_id ||
+            currentStateId ||
+            1
+        );
+
+
+    document.getElementById(
+        "profileView"
+    ).style.display = "none";
+
+
+    document.getElementById(
+        "profileEditView"
+    ).style.display = "block";
+
+}
+
+
+function cancelEditProfile(){
+
+    document.getElementById(
+        "profileView"
+    ).style.display = "block";
+
+
+    document.getElementById(
+        "profileEditView"
+    ).style.display = "none";
+
+}
+
+
+async function saveProfile(){
+
+    const name =
+        document.getElementById(
+            "editProfileName"
+        ).value.trim();
+
+
+    const email =
+        document.getElementById(
+            "editProfileEmail"
+        ).value.trim();
+
+
+    const stateId =
+        parseInt(
+            document.getElementById(
+                "editProfileState"
+            ).value
+        );
+
+
+    if(!name){
+
+        showToast(
+            "Please enter your name."
+        );
+
+        return;
+
+    }
+
+
+    if(!email){
+
+        showToast(
+            "Please enter your email."
+        );
+
+        return;
+
+    }
+
+
+    const token =
+        localStorage.getItem(
+            "pt_token"
+        );
+
+
+    if(!token){
+
+        window.location.href =
+            "login.html";
+
+        return;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_BASE_URL}/api/auth/me`,
+                {
+                    method:"PUT",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            `Bearer ${token}`
+                    },
+
+                    body:JSON.stringify({
+
+                        name:name,
+
+                        email:email,
+
+                        state_id:stateId
+
+                    })
+                }
+            );
+
+
+        if(!response.ok){
+
+            const errorData =
+                await response.json()
+                .catch(
+                    () => ({})
+                );
+
+
+            throw new Error(
+                errorData.detail ||
+                `Server returned ${response.status}`
+            );
+
+        }
+
+
+        const updatedUser =
+            await response.json();
+
+
+        localStorage.setItem(
+            "pt_user",
+            JSON.stringify(
+                updatedUser
+            )
+        );
+
+
+        /*
+        Update application state
+        */
+
+        currentStateId =
+            updatedUser.state_id ||
+            stateId;
+
+
+        localStorage.setItem(
+            "pt_state_id",
+            String(currentStateId)
+        );
+
+
+        updateStateUI();
+
+        updateUserAvatar();
+
+
+        const profileText =
+            document.getElementById(
+                "profileText"
+            );
+
+
+        if(profileText){
+
+            profileText.textContent =
+                updatedUser.name ||
+                name;
+
+        }
+
+
+        renderProfile(
+            updatedUser
+        );
+
+
+        document.getElementById(
+            "profileView"
+        ).style.display = "block";
+
+
+        document.getElementById(
+            "profileEditView"
+        ).style.display = "none";
+
+
+        showToast(
+            "Profile updated successfully!"
+        );
+
+
+        /*
+        Reload state-specific content
+        */
+
+        await loadStateContent();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Profile update error:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to update profile."
+        );
+
+    }
+
+}
 
 /* =====================================================
    AUTH
@@ -4272,37 +5131,14 @@ function getCurrentUserName(){
 
 function handleAuthClick(){
 
-    const token =
-        localStorage.getItem(
-            "pt_token"
-        );
+    const token = localStorage.getItem("pt_token");
 
-
-    if(token){
-
-        if(
-            confirm(
-                "Log out of Political Tea?"
-            )
-        ){
-
-            logout();
-
-        }
-
+    if(!token){
+        window.location.href = "login.html";
         return;
-
     }
 
-
-    /*
-       Change this if your login page has
-       another filename.
-    */
-
-    window.location.href =
-        "login.html";
-
+    openProfileModal();
 }
 
 
@@ -4472,8 +5308,560 @@ document.addEventListener(
 
 renderPosts();
 
+/* =========================================================
+   TEA CHATBOT
+   ========================================================= */
+
+let teaConversation = [];
+
+let teaBusy = false;
+
+
+/* ---------------------------------------------------------
+   Toggle chatbot
+--------------------------------------------------------- */
+
+function toggleTeaChat() {
+
+    const chat = document.getElementById("teaChat");
+
+    if (!chat) return;
+
+    const isOpen = chat.classList.contains("show");
+
+    if (isOpen) {
+
+        chat.classList.remove("show");
+
+        return;
+    }
+
+
+    const token = localStorage.getItem("pt_token");
+
+    if (!token) {
+
+        showToast(
+            "Please login to chat with Tea."
+        );
+
+        window.location.href = "login.html";
+
+        return;
+    }
+
+
+    chat.classList.add("show");
+
+    updateTeaState();
+
+    setTimeout(() => {
+
+        document.getElementById(
+            "teaInput"
+        )?.focus();
+
+    }, 100);
+}
+
+
+/* ---------------------------------------------------------
+   Update state
+--------------------------------------------------------- */
+
+function updateTeaState() {
+
+    const user = getStoredUser();
+
+    if (!user) return;
+
+    const stateId = Number(
+        user.state_id ||
+        currentStateId
+    );
+
+    const stateName =
+        STATE_MAP[stateId] ||
+        currentState ||
+        "your state";
+
+
+    const subtitle =
+        document.getElementById(
+            "teaSubtitle"
+        );
+
+    if (subtitle) {
+
+        subtitle.textContent =
+            `Brewing news from ${stateName}`;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   Add message
+--------------------------------------------------------- */
+
+function addTeaMessage(
+    role,
+    message
+) {
+
+    const container =
+        document.getElementById(
+            "teaMessages"
+        );
+
+    if (!container) return;
+
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        `tea-message ${role}`;
+
+
+    const bubble =
+        document.createElement("div");
+
+    bubble.className =
+        "tea-bubble";
+
+
+    bubble.textContent =
+        message;
+
+
+    wrapper.appendChild(
+        bubble
+    );
+
+
+    container.appendChild(
+        wrapper
+    );
+
+
+    container.scrollTop =
+        container.scrollHeight;
+}
+
+
+/* ---------------------------------------------------------
+   Send message
+--------------------------------------------------------- */
+
+async function sendTeaMessage() {
+
+    if (teaBusy) return;
+
+
+    const input =
+        document.getElementById(
+            "teaInput"
+        );
+
+    if (!input) return;
+
+
+    const message =
+        input.value.trim();
+
+
+    if (!message) return;
+
+
+    const token =
+        localStorage.getItem(
+            "pt_token"
+        );
+
+
+    if (!token) {
+
+        showToast(
+            "Please login to use Tea."
+        );
+
+        return;
+    }
+
+
+    /* Show user message */
+
+    addTeaMessage(
+        "user",
+        message
+    );
+
+
+    input.value = "";
+
+
+    /* Save conversation */
+
+    teaConversation.push({
+
+        role: "user",
+
+        content: message
+
+    });
+
+
+    /* Limit conversation */
+
+    if (teaConversation.length > 10) {
+
+        teaConversation =
+            teaConversation.slice(-10);
+    }
+
+
+    teaBusy = true;
+
+
+    const sendButton =
+        document.getElementById(
+            "teaSend"
+        );
+
+    const typing =
+        document.getElementById(
+            "teaTyping"
+        );
+
+
+    if (sendButton) {
+
+        sendButton.disabled = true;
+    }
+
+
+    if (typing) {
+
+        typing.classList.add(
+            "show"
+        );
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE_URL}/api/tea/chat`,
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            `Bearer ${token}`
+
+                    },
+
+                    body: JSON.stringify({
+
+                        message:
+                            message,
+
+                        conversation:
+                            teaConversation.slice(
+                                -10,
+                                -1
+                            )
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Tea is currently unavailable."
+            );
+        }
+
+
+        const answer =
+            data.answer ||
+            "☕ I couldn't find enough information right now.";
+
+
+        addTeaMessage(
+            "assistant",
+            answer
+        );
+
+
+        teaConversation.push({
+
+            role: "assistant",
+
+            content: answer
+
+        });
+
+
+        if (teaConversation.length > 10) {
+
+            teaConversation =
+                teaConversation.slice(-10);
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Tea error:",
+            error
+        );
+
+
+        addTeaMessage(
+            "assistant",
+            `☕ Sorry, I couldn't brew an answer right now.\n\n${error.message}`
+        );
+
+    } finally {
+
+        teaBusy = false;
+
+
+        if (sendButton) {
+
+            sendButton.disabled =
+                false;
+        }
+
+
+        if (typing) {
+
+            typing.classList.remove(
+                "show"
+            );
+        }
+
+
+        input.focus();
+    }
+}
+
+
+/* ---------------------------------------------------------
+   Suggestion
+--------------------------------------------------------- */
+
+function askTeaSuggestion(
+    question
+) {
+
+    const input =
+        document.getElementById(
+            "teaInput"
+        );
+
+
+    if (!input) return;
+
+
+    input.value =
+        question;
+
+
+    sendTeaMessage();
+}
+
+
+/* ---------------------------------------------------------
+   Enter key
+--------------------------------------------------------- */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        const input =
+            document.getElementById(
+                "teaInput"
+            );
+
+
+        if (!input) return;
+
+
+        if (
+            document.activeElement === input &&
+            event.key === "Enter"
+        ) {
+
+            event.preventDefault();
+
+            sendTeaMessage();
+        }
+
+    }
+);
 
 </script>
+<!-- =========================================================
+     TEA CHATBOT
+     ========================================================= -->
 
+<button
+    class="tea-fab"
+    id="teaFab"
+    onclick="toggleTeaChat()"
+    aria-label="Ask Tea"
+>
+    ☕
+    <span>AI</span>
+</button>
+
+
+<div
+    class="tea-chat"
+    id="teaChat"
+>
+
+    <!-- Header -->
+
+    <div class="tea-header">
+
+        <div class="tea-header-left">
+
+            <div class="tea-icon">
+                ☕
+            </div>
+
+            <div>
+
+                <div class="tea-title">
+                    Ask Tea
+                </div>
+
+                <div
+                    class="tea-subtitle"
+                    id="teaSubtitle"
+                >
+                    Your local news assistant
+                </div>
+
+            </div>
+
+        </div>
+
+        <button
+            class="tea-close"
+            onclick="toggleTeaChat()"
+        >
+            ✕
+        </button>
+
+    </div>
+
+
+    <!-- Messages -->
+
+    <div
+        class="tea-messages"
+        id="teaMessages"
+    >
+
+        <div class="tea-message assistant">
+
+            <div class="tea-bubble">
+                ☕ Hey! I’m Tea.
+Let’s see what’s brewing 👀
+Ask me about local news, political updates, public issues, or what people are talking about in your state.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Typing -->
+
+    <div
+        class="tea-typing"
+        id="teaTyping"
+    >
+        ☕ Tea is brewing an answer...
+    </div>
+
+
+    <!-- Suggestions -->
+
+    <div class="tea-suggestions">
+
+        <button
+            class="tea-suggestion"
+            onclick="askTeaSuggestion(
+                'What is happening in my state today?'
+            )"
+        >
+            📰 What's happening today?
+        </button>
+
+        <button
+            class="tea-suggestion"
+            onclick="askTeaSuggestion(
+                'What are the latest political updates in my state?'
+            )"
+        >
+            🗳️ Political updates
+        </button>
+
+        <button
+            class="tea-suggestion"
+            onclick="askTeaSuggestion(
+                'What are the major local issues being discussed right now?'
+            )"
+        >
+            🔥 Local issues
+        </button>
+
+    </div>
+
+
+    <!-- Input -->
+
+    <div class="tea-input-area">
+
+        <input
+            type="text"
+            id="teaInput"
+            class="tea-input"
+            placeholder="Ask Tea anything..."
+            maxlength="4000"
+            autocomplete="off"
+        >
+
+        <button
+            class="tea-send"
+            id="teaSend"
+            onclick="sendTeaMessage()"
+        >
+            ➤
+        </button>
+
+    </div>
+
+</div>
 </body>
 </html>
