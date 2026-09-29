@@ -48,6 +48,19 @@ class UserResponse(BaseModel):
 
 
 # =========================================
+# UPDATE USER PROFILE
+# =========================================
+
+class UserUpdate(BaseModel):
+
+    name: str
+
+    email: EmailStr
+
+    state_id: Optional[int] = None
+
+
+# =========================================
 # STATE
 # =========================================
 
@@ -162,6 +175,10 @@ class NewsResponse(BaseModel):
         from_attributes = True
 
 
+# =========================================
+# TRENDING
+# =========================================
+
 class TrendingTopicResponse(BaseModel):
 
     title: str
@@ -213,4 +230,4 @@ class RecentContentResponse(BaseModel):
 
     fetched_at: str
 
-    source_errors: list[str] = []    
+    source_errors: list[str] = []
