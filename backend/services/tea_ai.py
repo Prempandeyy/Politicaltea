@@ -9,7 +9,7 @@ from typing import Optional
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-OPENROUTER_M = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-20b")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-20b")
 
 OPENROUTER_URL = (
     "https://openrouter.ai/api/v1/chat/completions"
