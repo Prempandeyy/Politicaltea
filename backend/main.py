@@ -10,6 +10,7 @@ from backend.routes.content import router as content_router
 from backend.routes.trending import router as trending_router
 from backend.routes.recent_content import router as recent_content_router
 from backend.routes.tea_chat import router as tea_chat_router
+from backend.routes.posts import router as posts_router
 
 
 app = FastAPI(
@@ -51,6 +52,7 @@ app.include_router(content_router)
 app.include_router(trending_router)
 app.include_router(recent_content_router)
 app.include_router(tea_chat_router)
+app.include_router(posts_router)
 
 @app.get("/health", tags=["health"])
 def health():
