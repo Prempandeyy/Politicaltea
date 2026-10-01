@@ -1,2425 +1,564 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Political Tea — What's Brewing?</title>
 
 <style>
-
-/* =========================================================
-   TEA CHATBOT
-   ========================================================= */
-
-.tea-fab {
-    position: fixed;
-    right: 24px;
-    bottom: 82px;
-    width: 58px;
-    height: 58px;
-    border: 0;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--pink), var(--violet));
-    color: white;
-    font-size: 25px;
-    cursor: pointer;
-    box-shadow: 0 12px 30px rgba(118, 87, 255, .30);
-    z-index: 900;
-    transition: .2s ease;
-}
-
-.tea-fab:hover {
-    transform: translateY(-3px) scale(1.04);
-}
-
-.tea-fab span {
-    position: absolute;
-    right: -3px;
-    top: -5px;
-    background: var(--lime);
-    color: var(--ink);
-    font-size: 9px;
-    font-weight: 900;
-    padding: 4px 6px;
-    border-radius: 20px;
-}
-
-
-/* Chat window */
-
-.tea-chat {
-    position: fixed;
-    right: 24px;
-    bottom: 150px;
-    width: 390px;
-    height: 560px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    box-shadow: 0 25px 70px rgba(20, 10, 40, .20);
-    overflow: hidden;
-    display: none;
-    flex-direction: column;
-    z-index: 1000;
-}
-
-.tea-chat.show {
-    display: flex;
-}
-
-
-/* Header */
-
-.tea-header {
-    padding: 16px 18px;
-    background: linear-gradient(
-        135deg,
-        var(--pink),
-        var(--violet)
-    );
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.tea-header-left {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-}
-
-.tea-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.18);
-    display: grid;
-    place-items: center;
-    font-size: 21px;
-}
-
-.tea-title {
-    font-size: 16px;
-    font-weight: 900;
-}
-
-.tea-subtitle {
-    font-size: 10px;
-    opacity: .85;
-    margin-top: 2px;
-}
-
-.tea-close {
-    border: 0;
-    background: transparent;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-
-/* Messages */
-
-.tea-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    background: #faf8fc;
-}
-
-.tea-message {
-    display: flex;
-    margin-bottom: 12px;
-}
-
-.tea-message.user {
-    justify-content: flex-end;
-}
-
-.tea-bubble {
-    max-width: 82%;
-    padding: 11px 13px;
-    border-radius: 15px;
-    font-size: 13px;
-    line-height: 1.55;
-    white-space: pre-wrap;
-}
-
-.tea-message.assistant .tea-bubble {
-    background: white;
-    border: 1px solid var(--border);
-    color: var(--ink);
-    border-bottom-left-radius: 5px;
-}
-
-.tea-message.user .tea-bubble {
-    background: var(--violet);
-    color: white;
-    border-bottom-right-radius: 5px;
-}
-
-
-/* Typing */
-
-.tea-typing {
-    display: none;
-    padding: 0 16px 10px;
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.tea-typing.show {
-    display: block;
-}
-
-
-/* Suggestions */
-
-.tea-suggestions {
-    display: flex;
-    gap: 7px;
-    overflow-x: auto;
-    padding: 9px 12px;
-    border-top: 1px solid var(--border);
-    background: white;
-}
-
-.tea-suggestion {
-    flex: 0 0 auto;
-    border: 1px solid var(--border);
-    background: #faf8fc;
-    color: var(--ink);
-    padding: 7px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.tea-suggestion:hover {
-    border-color: var(--violet);
-}
-
-
-/* Input */
-
-.tea-input-area {
-    padding: 11px;
-    background: white;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
-}
-
-.tea-input {
-    flex: 1;
-    border: 1px solid var(--border);
-    background: #faf8fc;
-    border-radius: 14px;
-    padding: 11px 13px;
-    font-family: inherit;
-    font-size: 13px;
-    outline: none;
-}
-
-.tea-input:focus {
-    border-color: var(--violet);
-}
-
-.tea-send {
-    width: 42px;
-    height: 42px;
-    border: 0;
-    border-radius: 13px;
-    background: var(--pink);
-    color: white;
-    cursor: pointer;
-    font-size: 17px;
-}
-
-.tea-send:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-}
-
-
-/* Mobile */
-
-@media (max-width: 600px) {
-
-    .tea-fab {
-        right: 16px;
-        bottom: 75px;
-    }
-
-    .tea-chat {
-        right: 10px;
-        left: 10px;
-        bottom: 70px;
-        width: auto;
-        height: calc(100vh - 100px);
-        max-height: 650px;
-        border-radius: 20px;
-    }
-}
-
-:root{
-    --ink:#0d0817;
-    --bg:#f7f2ff;
-    --card:#ffffff;
-    --pink:#ff3ea6;
-    --violet:#7657ff;
-    --lime:#d8ff3e;
-    --orange:#ff8a3d;
-    --green:#4caf50;
-    --muted:#81798d;
-    --border:#e8e0ef;
-    --shadow:0 15px 40px rgba(34,20,55,.08);
-    --radius:22px;
-}
-
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
-
-html{
-    scroll-behavior:smooth;
-}
-
-body{
-    font-family:Inter,ui-sans-serif,system-ui,-apple-system,
-    BlinkMacSystemFont,"Segoe UI",sans-serif;
-    background:var(--bg);
-    color:var(--ink);
-}
-
-button,
-input,
-textarea,
-select{
-    font:inherit;
-}
-
-button{
-    cursor:pointer;
-}
-
-a{
-    color:inherit;
-    text-decoration:none;
-}
-
-/* =====================================
-   HEADER
-===================================== */
-
-.header{
-    position:sticky;
-    top:0;
-    z-index:100;
-    background:rgba(247,242,255,.92);
-    backdrop-filter:blur(18px);
-    border-bottom:1px solid rgba(0,0,0,.06);
-}
-
-.nav{
-    max-width:1450px;
-    margin:auto;
-    height:78px;
-    padding:0 28px;
-    display:flex;
-    align-items:center;
-    gap:25px;
-}
-
-.logo{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    min-width:max-content;
-}
-
-.logo-mark{
-    width:42px;
-    height:42px;
-    border-radius:13px;
-    background:var(--ink);
-    color:white;
-    display:grid;
-    place-items:center;
-    font-size:21px;
-    font-weight:900;
-    transform:rotate(-5deg);
-}
-
-.logo-text{
-    font-size:22px;
-    font-weight:900;
-    letter-spacing:-1px;
-}
-
-.logo-text span{
-    color:var(--pink);
-}
-
-.search{
-    flex:1;
-    max-width:480px;
-    margin:auto;
-    position:relative;
-}
-
-.search input{
-    width:100%;
-    border:1px solid var(--border);
-    background:white;
-    padding:13px 18px 13px 44px;
-    border-radius:50px;
-    outline:none;
-}
-
-.search input:focus{
-    border-color:var(--violet);
-    box-shadow:0 0 0 4px rgba(118,87,255,.08);
-}
-
-.search-icon{
-    position:absolute;
-    left:17px;
-    top:50%;
-    transform:translateY(-50%);
-}
-
-.nav-actions{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.btn{
-    border:0;
-    border-radius:14px;
-    padding:11px 17px;
-    font-weight:800;
-    transition:.2s;
-}
-
-.btn:hover{
-    transform:translateY(-2px);
-}
-
-.btn-dark{
-    background:var(--ink);
-    color:white;
-}
-
-.btn-pink{
-    background:var(--pink);
-    color:white;
-}
-
-.btn-light{
-    background:white;
-    border:1px solid var(--border);
-}
-
-.avatar{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    background:linear-gradient(135deg,var(--pink),var(--violet));
-    color:white;
-    display:grid;
-    place-items:center;
-    font-weight:900;
-    cursor:pointer;
-}
-
-/* =====================================
-   LAYOUT
-===================================== */
-
-.container{
-    max-width:1450px;
-    margin:auto;
-    padding:28px;
-}
-
-.layout{
-    display:grid;
-    grid-template-columns:250px minmax(0,1fr) 310px;
-    gap:25px;
-}
-
-.main{
-    min-width:0;
-}
-
-/* =====================================
-   SIDEBAR
-===================================== */
-
-.sidebar{
-    position:sticky;
-    top:105px;
-    height:max-content;
-}
-
-.side-card{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:17px;
-    box-shadow:var(--shadow);
-}
-
-.side-title{
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:1.5px;
-    color:var(--muted);
-    font-weight:900;
-    margin:8px 10px 12px;
-}
-
-.side-link{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    width:100%;
-    padding:12px;
-    border-radius:13px;
-    border:0;
-    background:transparent;
-    font-weight:750;
-    text-align:left;
-    margin-bottom:3px;
-}
-
-.side-link:hover,
-.side-link.active{
-    background:#f3edff;
-}
-
-.side-link.active{
-    color:var(--violet);
-}
-
-.state-mini{
-    margin-top:18px;
-    padding:15px;
-    border-radius:17px;
-    background:var(--ink);
-    color:white;
-}
-
-.state-mini small{
-    color:#aaa2b6;
-}
-
-.state-mini strong{
-    display:block;
-    margin-top:4px;
-    font-size:18px;
-}
-
-.state-change{
-    margin-top:12px;
-    width:100%;
-    border:1px solid rgba(255,255,255,.2);
-    background:transparent;
-    color:white;
-    border-radius:10px;
-    padding:8px;
-}
-
-/* =====================================
-   HERO
-===================================== */
-
-.hero{
-    background:var(--ink);
-    color:white;
-    border-radius:30px;
-    padding:32px;
-    position:relative;
-    overflow:hidden;
-    margin-bottom:25px;
-}
-
-.hero:before{
-    content:"";
-    position:absolute;
-    width:280px;
-    height:280px;
-    border-radius:50%;
-    background:var(--pink);
-    right:-90px;
-    top:-120px;
-    opacity:.7;
-}
-
-.hero:after{
-    content:"";
-    position:absolute;
-    width:180px;
-    height:180px;
-    border-radius:50%;
-    background:var(--violet);
-    right:100px;
-    bottom:-110px;
-}
-
-.hero-content{
-    position:relative;
-    z-index:2;
-}
-
-.eyebrow{
-    display:inline-flex;
-    align-items:center;
-    gap:7px;
-    padding:7px 11px;
-    border-radius:30px;
-    background:rgba(255,255,255,.1);
-    font-size:12px;
-    font-weight:800;
-    margin-bottom:14px;
-}
-
-.live-dot{
-    width:7px;
-    height:7px;
-    border-radius:50%;
-    background:#70ff65;
-    box-shadow:0 0 10px #70ff65;
-}
-
-.hero h1{
-    font-size:clamp(32px,5vw,62px);
-    line-height:.98;
-    letter-spacing:-3px;
-    max-width:750px;
-}
-
-.hero h1 span{
-    color:var(--lime);
-}
-
-.hero p{
-    color:#c3bbc9;
-    margin-top:16px;
-    max-width:650px;
-    line-height:1.6;
-}
-
-.hero-actions{
-    margin-top:22px;
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-}
-
-.state-selector{
-    background:white;
-    color:var(--ink);
-    border:0;
-    border-radius:13px;
-    padding:12px 15px;
-    font-weight:800;
-}
-
-/* =====================================
-   SECTIONS
-===================================== */
-
-.section{
-    margin-bottom:28px;
-}
-
-.section-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:end;
-    margin-bottom:14px;
-    gap:15px;
-}
-
-.section-head h2{
-    font-size:22px;
-    letter-spacing:-.7px;
-}
-
-.section-head p{
-    font-size:13px;
-    color:var(--muted);
-    margin-top:3px;
-}
-
-.see-all{
-    color:var(--violet);
-    font-weight:800;
-    font-size:13px;
-}
-
-/* =====================================
-   LOADING
-===================================== */
-
-.loading{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:18px;
-    padding:25px;
-    color:var(--muted);
-    text-align:center;
-    font-size:13px;
-}
-
-.error-box{
-    background:#fff1f5;
-    border:1px solid #ffd0df;
-    color:#b21f54;
-    border-radius:18px;
-    padding:18px;
-    font-size:13px;
-}
-
-/* =====================================
-   TOPICS
-===================================== */
-
-.topic-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:14px;
-}
-
-.topic-card{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:20px;
-    padding:18px;
-    box-shadow:var(--shadow);
-    transition:.2s;
-}
-
-.topic-card:hover{
-    transform:translateY(-4px);
-}
-
-.topic-number{
-    font-size:11px;
-    font-weight:900;
-    color:var(--pink);
-}
-
-.topic-card h3{
-    margin-top:8px;
-    font-size:17px;
-    line-height:1.25;
-}
-
-.topic-meta{
-    margin-top:13px;
-    color:var(--muted);
-    font-size:12px;
-}
-
-.topic-source{
-    margin-top:8px;
-    font-size:10px;
-    color:var(--violet);
-    font-weight:800;
-}
-
-/* =====================================
-   FEED
-===================================== */
-
-.feed{
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-}
-
-.post{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:22px;
-    padding:20px;
-    box-shadow:var(--shadow);
-}
-
-.post-top{
-    display:flex;
-    justify-content:space-between;
-    gap:15px;
-}
-
-.author{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.author-avatar{
-    width:43px;
-    height:43px;
-    border-radius:50%;
-    background:linear-gradient(135deg,#ff3ea6,#7657ff);
-    display:grid;
-    place-items:center;
-    color:white;
-    font-weight:900;
-}
-
-.author-info strong{
-    display:block;
-    font-size:14px;
-}
-
-.author-info span{
-    font-size:11px;
-    color:var(--muted);
-}
-
-.post-type{
-    background:#f4effb;
-    border-radius:30px;
-    padding:6px 10px;
-    height:max-content;
-    font-size:10px;
-    font-weight:900;
-    text-transform:uppercase;
-}
-
-.post h3{
-    font-size:21px;
-    margin-top:17px;
-    line-height:1.2;
-}
-
-.post-body{
-    margin-top:10px;
-    color:#665d70;
-    line-height:1.6;
-}
-
-.post-cover{
-    margin-top:16px;
-    height:230px;
-    border-radius:17px;
-    overflow:hidden;
-}
-
-.post-cover img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-}
-
-.post-actions{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    border-top:1px solid var(--border);
-    margin-top:17px;
-    padding-top:13px;
-}
-
-.action-btn{
-    border:0;
-    background:transparent;
-    border-radius:10px;
-    padding:8px 11px;
-    font-size:13px;
-    font-weight:700;
-    color:#746a7c;
-}
-
-.action-btn:hover{
-    background:#f5f0f9;
-    color:var(--ink);
-}
-
-.action-btn.liked{
-    color:var(--pink);
-}
-
-.more-btn{
-    margin-left:auto;
-}
-
-/* =====================================
-   VIDEO
-===================================== */
-
-.video-grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:15px;
-}
-
-.video-card{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:20px;
-    overflow:hidden;
-    box-shadow:var(--shadow);
-    cursor:pointer;
-}
-
-.video-thumb{
-    height:180px;
-    position:relative;
-    overflow:hidden;
-    background:#20172a;
-}
-
-.video-thumb img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    transition:.3s;
-}
-
-.video-card:hover .video-thumb img{
-    transform:scale(1.04);
-}
-
-.play{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    width:55px;
-    height:55px;
-    border-radius:50%;
-    background:white;
-    color:var(--pink);
-    display:grid;
-    place-items:center;
-    font-size:21px;
-    box-shadow:0 10px 30px rgba(0,0,0,.3);
-}
-
-.video-info{
-    padding:15px;
-}
-
-.video-info h3{
-    font-size:16px;
-    line-height:1.3;
-}
-
-.video-info small{
-    color:var(--muted);
-    display:block;
-    margin-top:8px;
-}
-
-/* =====================================
-   NEWS
-===================================== */
-
-.news-list{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-
-.news{
-    background:white;
-    border:1px solid var(--border);
-    padding:15px;
-    border-radius:17px;
-    display:flex;
-    gap:14px;
-    align-items:center;
-    cursor:pointer;
-    transition:.2s;
-}
-
-.news:hover{
-    transform:translateY(-2px);
-}
-
-.news-img{
-    width:90px;
-    height:70px;
-    border-radius:12px;
-    object-fit:cover;
-}
-
-.news-content{
-    min-width:0;
-}
-
-.news-source{
-    font-size:10px;
-    color:var(--pink);
-    font-weight:900;
-    text-transform:uppercase;
-}
-
-.news h3{
-    margin-top:4px;
-    font-size:14px;
-    line-height:1.3;
-}
-
-.news time{
-    color:var(--muted);
-    font-size:10px;
-}
-
-/* =====================================
-   RIGHT SIDEBAR
-===================================== */
-
-.rightbar{
-    position:sticky;
-    top:105px;
-    height:max-content;
-}
-
-.right-card{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:22px;
-    padding:19px;
-    box-shadow:var(--shadow);
-    margin-bottom:17px;
-}
-
-.right-card h3{
-    font-size:17px;
-}
-
-.trend{
-    display:flex;
-    gap:12px;
-    padding:14px 0;
-    border-bottom:1px solid var(--border);
-}
-
-.trend:last-child{
-    border-bottom:0;
-}
-
-.trend-no{
-    color:var(--pink);
-    font-weight:900;
-}
-
-.trend strong{
-    display:block;
-    font-size:13px;
-}
-
-.trend span{
-    font-size:10px;
-    color:var(--muted);
-}
-
-/* =====================================
-   COMMENTS
-===================================== */
-
-.comments{
-    display:none;
-    margin-top:14px;
-    border-top:1px solid var(--border);
-    padding-top:14px;
-}
-
-.comments.show{
-    display:block;
-}
-
-.comment{
-    display:flex;
-    gap:9px;
-    margin-bottom:12px;
-}
-
-.comment-avatar{
-    width:30px;
-    height:30px;
-    flex:none;
-    border-radius:50%;
-    background:var(--violet);
-    color:white;
-    display:grid;
-    place-items:center;
-    font-size:10px;
-    font-weight:900;
-}
-
-.comment-body{
-    background:#f6f2f9;
-    padding:8px 11px;
-    border-radius:12px;
-    flex:1;
-}
-
-.comment-body strong{
-    font-size:11px;
-}
-
-.comment-body p{
-    margin-top:3px;
-    font-size:12px;
-}
-
-.comment-input{
-    display:flex;
-    gap:8px;
-}
-
-.comment-input input{
-    flex:1;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:10px;
-    outline:none;
-}
-
-/* =====================================
-   MODAL
-===================================== */
-
-.modal{
-    position:fixed;
-    inset:0;
-    background:rgba(13,8,23,.65);
-    backdrop-filter:blur(8px);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:300;
-    padding:20px;
-}
-
-.modal.show{
-    display:flex;
-}
-
-.modal-box{
-    background:white;
-    width:min(800px,100%);
-    max-height:92vh;
-    overflow:auto;
-    border-radius:25px;
-    padding:25px;
-}
-
-.modal-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
-}
-
-.close{
-    width:35px;
-    height:35px;
-    border-radius:50%;
-    border:0;
-    background:#f3eef7;
-}
-
-.form-group{
-    margin-bottom:16px;
-}
-
-.form-group label{
-    display:block;
-    font-size:12px;
-    font-weight:900;
-    margin-bottom:7px;
-}
-
-.form-input,
-.form-select{
-    width:100%;
-    padding:12px 14px;
-    border:1px solid var(--border);
-    border-radius:12px;
-    outline:none;
-    background:white;
-}
-
-textarea.form-input{
-    min-height:180px;
-    resize:vertical;
-}
-
-.editor-toolbar{
-    display:flex;
-    flex-wrap:wrap;
-    gap:5px;
-    padding:8px;
-    background:#f7f3fa;
-    border:1px solid var(--border);
-    border-bottom:0;
-    border-radius:12px 12px 0 0;
-}
-
-.editor-toolbar button{
-    border:0;
-    background:white;
-    border-radius:7px;
-    padding:6px 9px;
-    font-weight:800;
-}
-
-.editor{
-    min-height:240px;
-    border:1px solid var(--border);
-    border-radius:0 0 12px 12px;
-    padding:15px;
-    outline:none;
-}
-
-.modal-actions{
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-    margin-top:20px;
-}
-
-/* =====================================
-   TOAST
-===================================== */
-
-.toast{
-    position:fixed;
-    bottom:25px;
-    left:50%;
-    transform:translate(-50%,120px);
-    background:var(--ink);
-    color:white;
-    padding:13px 18px;
-    border-radius:13px;
-    z-index:500;
-    opacity:0;
-    transition:.3s;
-    font-size:13px;
-    font-weight:700;
-}
-
-.toast.show{
-    opacity:1;
-    transform:translate(-50%,0);
-}
-
-/* =====================================
-   MOBILE
-===================================== */
-
-.mobile-nav{
-    display:none;
-}
-
+:root{--ink:#0d0817;--bg:#f7f2ff;--card:#ffffff;--pink:#ff3ea6;--violet:#7657ff;--lime:#d8ff3e;--orange:#ff8a3d;--green:#4caf50;--muted:#81798d;--border:#e8e0ef;--shadow:0 15px 40px rgba(34,20,55,.08);--radius:22px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);}
+button,input,textarea,select{font:inherit;}
+button{cursor:pointer;}
+a{color:inherit;text-decoration:none;}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;background:rgba(247,242,255,.92);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,0,0,.06);}
+.nav{max-width:1450px;margin:auto;height:78px;padding:0 28px;display:flex;align-items:center;gap:25px;}
+.logo{display:flex;align-items:center;gap:10px;min-width:max-content;}
+.logo-mark{width:42px;height:42px;border-radius:13px;background:var(--ink);color:white;display:grid;place-items:center;font-size:21px;font-weight:900;transform:rotate(-5deg);}
+.logo-text{font-size:22px;font-weight:900;letter-spacing:-1px;}
+.logo-text span{color:var(--pink);}
+.search{flex:1;max-width:480px;margin:auto;position:relative;}
+.search input{width:100%;border:1px solid var(--border);background:white;padding:13px 18px 13px 44px;border-radius:50px;outline:none;}
+.search input:focus{border-color:var(--violet);box-shadow:0 0 0 4px rgba(118,87,255,.08);}
+.search-icon{position:absolute;left:17px;top:50%;transform:translateY(-50%);}
+.nav-actions{display:flex;align-items:center;gap:10px;}
+.btn{border:0;border-radius:14px;padding:11px 17px;font-weight:800;transition:.2s;}
+.btn:hover{transform:translateY(-2px);}
+.btn-dark{background:var(--ink);color:white;}
+.btn-pink{background:var(--pink);color:white;}
+.btn-light{background:white;border:1px solid var(--border);}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--violet));color:white;display:grid;place-items:center;font-weight:900;cursor:pointer;}
+
+/* LAYOUT */
+.container{max-width:1450px;margin:auto;padding:28px;}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr) 310px;gap:25px;}
+.main{min-width:0;}
+
+/* SIDEBAR */
+.sidebar{position:sticky;top:105px;height:max-content;}
+.side-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:17px;box-shadow:var(--shadow);}
+.side-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:900;margin:8px 10px 12px;}
+.side-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border-radius:13px;border:0;background:transparent;font-weight:750;text-align:left;margin-bottom:3px;}
+.side-link:hover,.side-link.active{background:#f3edff;}
+.side-link.active{color:var(--violet);}
+.state-mini{margin-top:18px;padding:15px;border-radius:17px;background:var(--ink);color:white;}
+.state-mini small{color:#aaa2b6;}
+.state-mini strong{display:block;margin-top:4px;font-size:18px;}
+.state-change{margin-top:12px;width:100%;border:1px solid rgba(255,255,255,.2);background:transparent;color:white;border-radius:10px;padding:8px;}
+
+/* HERO */
+.hero{background:var(--ink);color:white;border-radius:30px;padding:32px;position:relative;overflow:hidden;margin-bottom:25px;}
+.hero:before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:var(--pink);right:-90px;top:-120px;opacity:.7;}
+.hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:var(--violet);right:100px;bottom:-110px;}
+.hero-content{position:relative;z-index:2;}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:30px;background:rgba(255,255,255,.1);font-size:12px;font-weight:800;margin-bottom:14px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#70ff65;box-shadow:0 0 10px #70ff65;}
+.hero h1{font-size:clamp(32px,5vw,62px);line-height:.98;letter-spacing:-3px;max-width:750px;}
+.hero h1 span{color:var(--lime);}
+.hero p{color:#c3bbc9;margin-top:16px;max-width:650px;line-height:1.6;}
+.hero-actions{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;}
+.state-selector{background:white;color:var(--ink);border:0;border-radius:13px;padding:12px 15px;font-weight:800;}
+
+/* SECTIONS */
+.section{margin-bottom:28px;}
+.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:14px;gap:15px;}
+.section-head h2{font-size:22px;letter-spacing:-.7px;}
+.section-head p{font-size:13px;color:var(--muted);margin-top:3px;}
+.see-all{color:var(--violet);font-weight:800;font-size:13px;}
+
+/* LOADING */
+.loading{background:white;border:1px solid var(--border);border-radius:18px;padding:25px;color:var(--muted);text-align:center;font-size:13px;}
+.error-box{background:#fff1f5;border:1px solid #ffd0df;color:#b21f54;border-radius:18px;padding:18px;font-size:13px;}
+
+/* TOPICS */
+.topic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.topic-card{background:white;border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:var(--shadow);transition:.2s;}
+.topic-card:hover{transform:translateY(-4px);}
+.topic-number{font-size:11px;font-weight:900;color:var(--pink);}
+.topic-card h3{margin-top:8px;font-size:17px;line-height:1.25;}
+.topic-meta{margin-top:13px;color:var(--muted);font-size:12px;}
+.topic-source{margin-top:8px;font-size:10px;color:var(--violet);font-weight:800;}
+
+/* FEED */
+.feed{display:flex;flex-direction:column;gap:15px;}
+.post{background:white;border:1px solid var(--border);border-radius:22px;padding:20px;box-shadow:var(--shadow);}
+.post-top{display:flex;justify-content:space-between;gap:15px;}
+.author{display:flex;align-items:center;gap:10px;}
+.author-avatar{width:43px;height:43px;border-radius:50%;background:linear-gradient(135deg,#ff3ea6,#7657ff);display:grid;place-items:center;color:white;font-weight:900;}
+.author-info strong{display:block;font-size:14px;}
+.author-info span{font-size:11px;color:var(--muted);}
+.post-type{background:#f4effb;border-radius:30px;padding:6px 10px;height:max-content;font-size:10px;font-weight:900;text-transform:uppercase;}
+.post h3{font-size:21px;margin-top:17px;line-height:1.2;}
+.post-body{margin-top:10px;color:#665d70;line-height:1.6;}
+.post-cover{margin-top:16px;height:230px;border-radius:17px;overflow:hidden;}
+.post-cover img{width:100%;height:100%;object-fit:cover;}
+.post-actions{display:flex;align-items:center;gap:7px;border-top:1px solid var(--border);margin-top:17px;padding-top:13px;}
+.action-btn{border:0;background:transparent;border-radius:10px;padding:8px 11px;font-size:13px;font-weight:700;color:#746a7c;}
+.action-btn:hover{background:#f5f0f9;color:var(--ink);}
+.action-btn.liked{color:var(--pink);}
+.more-btn{margin-left:auto;}
+
+/* VIDEO */
+.video-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;}
+.video-card{background:white;border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;}
+.video-thumb{height:180px;position:relative;overflow:hidden;background:#20172a;}
+.video-thumb img{width:100%;height:100%;object-fit:cover;transition:.3s;}
+.video-card:hover .video-thumb img{transform:scale(1.04);}
+.play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:55px;height:55px;border-radius:50%;background:white;color:var(--pink);display:grid;place-items:center;font-size:21px;box-shadow:0 10px 30px rgba(0,0,0,.3);}
+.video-info{padding:15px;}
+.video-info h3{font-size:16px;line-height:1.3;}
+.video-info small{color:var(--muted);display:block;margin-top:8px;}
+
+/* NEWS */
+.news-list{display:flex;flex-direction:column;gap:10px;}
+.news{background:white;border:1px solid var(--border);padding:15px;border-radius:17px;display:flex;gap:14px;align-items:center;cursor:pointer;transition:.2s;}
+.news:hover{transform:translateY(-2px);}
+.news-img{width:90px;height:70px;border-radius:12px;object-fit:cover;}
+.news-content{min-width:0;}
+.news-source{font-size:10px;color:var(--pink);font-weight:900;text-transform:uppercase;}
+.news h3{margin-top:4px;font-size:14px;line-height:1.3;}
+.news time{color:var(--muted);font-size:10px;}
+
+/* RIGHT SIDEBAR */
+.rightbar{position:sticky;top:105px;height:max-content;}
+.right-card{background:white;border:1px solid var(--border);border-radius:22px;padding:19px;box-shadow:var(--shadow);margin-bottom:17px;}
+.right-card h3{font-size:17px;}
+.trend{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);}
+.trend:last-child{border-bottom:0;}
+.trend-no{color:var(--pink);font-weight:900;}
+.trend strong{display:block;font-size:13px;}
+.trend span{font-size:10px;color:var(--muted);}
+
+/* COMMENTS */
+.comments{display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;}
+.comments.show{display:block;}
+.comment{display:flex;gap:9px;margin-bottom:12px;}
+.comment-avatar{width:30px;height:30px;flex:none;border-radius:50%;background:var(--violet);color:white;display:grid;place-items:center;font-size:10px;font-weight:900;}
+.comment-body{background:#f6f2f9;padding:8px 11px;border-radius:12px;flex:1;}
+.comment-body strong{font-size:11px;}
+.comment-body p{margin-top:3px;font-size:12px;}
+.comment-input{display:flex;gap:8px;}
+.comment-input input{flex:1;border:1px solid var(--border);border-radius:12px;padding:10px;outline:none;}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(13,8,23,.65);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
+.modal.show{display:flex;}
+.modal-box{background:white;width:min(800px,100%);max-height:92vh;overflow:auto;border-radius:25px;padding:25px;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.close{width:35px;height:35px;border-radius:50%;border:0;background:#f3eef7;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;font-weight:900;margin-bottom:7px;}
+.form-input,.form-select{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;outline:none;background:white;}
+textarea.form-input{min-height:180px;resize:vertical;}
+.editor-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:#f7f3fa;border:1px solid var(--border);border-bottom:0;border-radius:12px 12px 0 0;}
+.editor-toolbar button{border:0;background:white;border-radius:7px;padding:6px 9px;font-weight:800;}
+.editor{min-height:240px;border:1px solid var(--border);border-radius:0 0 12px 12px;padding:15px;outline:none;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,120px);background:var(--ink);color:white;padding:13px 18px;border-radius:13px;z-index:1100;opacity:0;transition:.3s;font-size:13px;font-weight:700;}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+
+/* MOBILE */
+.mobile-nav{display:none;}
 @media(max-width:1150px){
-
-    .layout{
-        grid-template-columns:210px minmax(0,1fr);
-    }
-
-    .rightbar{
-        display:none;
-    }
+    .layout{grid-template-columns:210px minmax(0,1fr);}
+    .rightbar{display:none;}
 }
-
 @media(max-width:800px){
-
-    .nav{
-        height:68px;
-        padding:0 15px;
-    }
-
-    .logo-text{
-        font-size:18px;
-    }
-
-    .search{
-        display:none;
-    }
-
-    .nav-actions .btn-dark,
-    .nav-actions .btn-pink{
-        display:none;
-    }
-
-    .container{
-        padding:16px 14px 90px;
-    }
-
-    .layout{
-        display:block;
-    }
-
-    .sidebar{
-        display:none;
-    }
-
-    .hero{
-        padding:25px 21px;
-        border-radius:23px;
-    }
-
-    .hero h1{
-        font-size:40px;
-        letter-spacing:-2px;
-    }
-
-    .topic-grid,
-    .video-grid{
-        grid-template-columns:1fr;
-    }
-
-    .post-cover{
-        height:190px;
-    }
-
-    .mobile-nav{
-        display:flex;
-        position:fixed;
-        z-index:200;
-        bottom:10px;
-        left:10px;
-        right:10px;
-        background:rgba(13,8,23,.94);
-        backdrop-filter:blur(15px);
-        border-radius:20px;
-        padding:8px;
-        justify-content:space-around;
-    }
-
-    .mobile-nav button{
-        color:#aaa;
-        background:none;
-        border:0;
-        padding:7px 12px;
-        font-size:11px;
-        font-weight:800;
-    }
-
-    .mobile-nav button.active{
-        color:var(--lime);
-    }
+    .nav{height:68px;padding:0 15px;}
+    .logo-text{font-size:18px;}
+    .search{display:none;}
+    .nav-actions .btn-dark,.nav-actions .btn-pink{display:none;}
+    .container{padding:16px 14px 90px;}
+    .layout{display:block;}
+    .sidebar{display:none;}
+    .hero{padding:25px 21px;border-radius:23px;}
+    .hero h1{font-size:40px;letter-spacing:-2px;}
+    .topic-grid,.video-grid{grid-template-columns:1fr;}
+    .post-cover{height:190px;}
+    .mobile-nav{display:flex;position:fixed;z-index:200;bottom:10px;left:10px;right:10px;background:rgba(13,8,23,.94);backdrop-filter:blur(15px);border-radius:20px;padding:8px;justify-content:space-around;}
+    .mobile-nav button{color:#aaa;background:none;border:0;padding:7px 12px;font-size:11px;font-weight:800;}
+    .mobile-nav button.active{color:var(--lime);}
 }
-
 @media(max-width:500px){
-
-    .hero h1{
-        font-size:34px;
-    }
-
-    .hero p{
-        font-size:13px;
-    }
-
-    .section-head h2{
-        font-size:19px;
-    }
-
-    .post{
-        padding:16px;
-    }
-
-    .post h3{
-        font-size:18px;
-    }
-
-    .news-img{
-        width:75px;
-        height:60px;
-    }
+    .hero h1{font-size:34px;}
+    .hero p{font-size:13px;}
+    .section-head h2{font-size:19px;}
+    .post{padding:16px;}
+    .post h3{font-size:18px;}
+    .news-img{width:75px;height:60px;}
 }
 
+/* TEA CHATBOT */
+.tea-fab{position:fixed;right:24px;bottom:82px;width:58px;height:58px;border:0;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--violet));color:white;font-size:25px;cursor:pointer;box-shadow:0 12px 30px rgba(118,87,255,.30);z-index:900;transition:.2s ease;}
+.tea-fab:hover{transform:translateY(-3px) scale(1.04);}
+.tea-fab span{position:absolute;right:-3px;top:-5px;background:var(--lime);color:var(--ink);font-size:9px;font-weight:900;padding:4px 6px;border-radius:20px;}
+.tea-chat{position:fixed;right:24px;bottom:150px;width:390px;height:560px;background:var(--card);border:1px solid var(--border);border-radius:22px;box-shadow:0 25px 70px rgba(20,10,40,.20);overflow:hidden;display:none;flex-direction:column;z-index:1000;}
+.tea-chat.show{display:flex;}
+.tea-header{padding:16px 18px;background:linear-gradient(135deg,var(--pink),var(--violet));color:white;display:flex;align-items:center;justify-content:space-between;}
+.tea-header-left{display:flex;align-items:center;gap:11px;}
+.tea-icon{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:21px;}
+.tea-title{font-size:16px;font-weight:900;}
+.tea-subtitle{font-size:10px;opacity:.85;margin-top:2px;}
+.tea-close{border:0;background:transparent;color:white;font-size:20px;cursor:pointer;}
+.tea-messages{flex:1;overflow-y:auto;padding:16px;background:#faf8fc;}
+.tea-message{display:flex;margin-bottom:12px;}
+.tea-message.user{justify-content:flex-end;}
+.tea-bubble{max-width:82%;padding:11px 13px;border-radius:15px;font-size:13px;line-height:1.55;white-space:pre-wrap;}
+.tea-message.assistant .tea-bubble{background:white;border:1px solid var(--border);color:var(--ink);border-bottom-left-radius:5px;}
+.tea-message.user .tea-bubble{background:var(--violet);color:white;border-bottom-right-radius:5px;}
+.tea-typing{display:none;padding:0 16px 10px;font-size:11px;color:var(--muted);}
+.tea-typing.show{display:block;}
+.tea-suggestions{display:flex;gap:7px;overflow-x:auto;padding:9px 12px;border-top:1px solid var(--border);background:white;}
+.tea-suggestion{flex:0 0 auto;border:1px solid var(--border);background:#faf8fc;color:var(--ink);padding:7px 10px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;}
+.tea-suggestion:hover{border-color:var(--violet);}
+.tea-input-area{padding:11px;background:white;border-top:1px solid var(--border);display:flex;gap:8px;}
+.tea-input{flex:1;border:1px solid var(--border);background:#faf8fc;border-radius:14px;padding:11px 13px;font-family:inherit;font-size:13px;outline:none;}
+.tea-input:focus{border-color:var(--violet);}
+.tea-send{width:42px;height:42px;border:0;border-radius:13px;background:var(--pink);color:white;cursor:pointer;font-size:17px;}
+.tea-send:disabled{opacity:.5;cursor:not-allowed;}
+@media (max-width:600px){
+    .tea-fab{right:16px;bottom:75px;}
+    .tea-chat{right:10px;left:10px;bottom:70px;width:auto;height:calc(100vh - 100px);max-height:650px;border-radius:20px;}
+}
 </style>
-
 </head>
 
 <body>
 
-
-<!-- =====================================
-     HEADER
-===================================== -->
-
+<!-- HEADER -->
 <header class="header">
-
 <nav class="nav">
 
 <a class="logo" href="#">
     <div class="logo-mark">PT</div>
-
-    <div class="logo-text">
-        Political <span>Tea</span>
-    </div>
+    <div class="logo-text">Political <span>Tea</span></div>
 </a>
 
-
 <div class="search">
-
     <span class="search-icon">⌕</span>
-
-    <input
-        id="searchInput"
-        type="text"
-        placeholder="Search topics, people, news..."
-        oninput="searchContent(this.value)"
-    >
-
+    <input id="searchInput" type="text" placeholder="Search topics, people, news..." oninput="searchContent(this.value)">
 </div>
-
 
 <div class="nav-actions">
-
-<button
-    class="btn btn-light"
-    onclick="openStateModal()"
->
-    📍 <span id="navState">Uttar Pradesh</span>
-</button>
-
-
-<button
-    class="btn btn-pink"
-    onclick="openCreateModal()"
->
-    + Share your take
-</button>
-
-
-<div
-    class="avatar"
-    onclick="handleAuthClick()"
-    id="userAvatar"
-    title="Profile"
-    aria-label="Profile"
->
-    P
-</div>
-
+    <button class="btn btn-light" onclick="openStateModal()">📍 <span id="navState">Uttar Pradesh</span></button>
+    <button class="btn btn-pink" onclick="openCreateModal()">+ Share your take</button>
+    <div class="avatar" onclick="handleAuthClick()" id="userAvatar" title="Profile" aria-label="Profile">P</div>
 </div>
 
 </nav>
-
 </header>
 
-
-
-<!-- =====================================
-     MAIN
-===================================== -->
-
+<!-- MAIN -->
 <div class="container">
-
 <div class="layout">
 
-
-<!-- =====================================
-     LEFT SIDEBAR
-===================================== -->
-
+<!-- LEFT SIDEBAR -->
 <aside class="sidebar">
-
 <div class="side-card">
 
-<div class="side-title">
-    Explore
-</div>
+<div class="side-title">Explore</div>
 
+<button class="side-link active">🏠 <span>What's Brewing</span></button>
+<button class="side-link" onclick="scrollToSection('trending')">🔥 <span>Trending</span></button>
+<button class="side-link" onclick="scrollToSection('news')">📰 <span>State News</span></button>
+<button class="side-link" onclick="scrollToSection('videos')">🎥 <span>Videos & Vlogs</span></button>
+<button class="side-link" onclick="scrollToSection('voices')">✍️ <span>People's Voice</span></button>
 
-<button class="side-link active">
-    🏠
-    <span>What's Brewing</span>
-</button>
+<div class="side-title">Your Space</div>
 
-
-<button
-    class="side-link"
-    onclick="scrollToSection('trending')"
->
-    🔥
-    <span>Trending</span>
-</button>
-
-
-<button
-    class="side-link"
-    onclick="scrollToSection('news')"
->
-    📰
-    <span>State News</span>
-</button>
-
-
-<button
-    class="side-link"
-    onclick="scrollToSection('videos')"
->
-    🎥
-    <span>Videos & Vlogs</span>
-</button>
-
-
-<button
-    class="side-link"
-    onclick="scrollToSection('voices')"
->
-    ✍️
-    <span>People's Voice</span>
-</button>
-
-
-<div class="side-title">
-    Your Space
-</div>
-
-
-<button
-    class="side-link"
-    onclick="openCreateModal()"
->
-    ✨
-    <span>Create Post</span>
-</button>
-
-
-<button class="side-link">
-    🔖
-    <span>Saved</span>
-</button>
-
-
-<button
-    class="side-link"
-    onclick="handleAuthClick()"
->
-    👤
-    <span id="profileText">My Profile</span>
-</button>
-
+<button class="side-link" onclick="openCreateModal()">✨ <span>Create Post</span></button>
+<button class="side-link">🔖 <span>Saved</span></button>
+<button class="side-link" onclick="handleAuthClick()">👤 <span id="profileText">My Profile</span></button>
 
 <div class="state-mini">
-
-<small>YOUR STATE</small>
-
-<strong id="sidebarState">
-    Uttar Pradesh
-</strong>
-
-<button
-    class="state-change"
-    onclick="openStateModal()"
->
-    Change state
-</button>
-
+    <small>YOUR STATE</small>
+    <strong id="sidebarState">Uttar Pradesh</strong>
+    <button class="state-change" onclick="openStateModal()">Change state</button>
 </div>
 
 </div>
-
 </aside>
 
-
-
-<!-- =====================================
-     CENTER
-===================================== -->
-
+<!-- CENTER -->
 <main class="main">
 
-
 <!-- HERO -->
-
 <section class="hero">
-
 <div class="hero-content">
 
-<div class="eyebrow">
+<div class="eyebrow"><span class="live-dot"></span> LIVE • LAST 24 HOURS</div>
 
-<span class="live-dot"></span>
+<h1>What's brewing in <span id="heroState">Uttar Pradesh</span>?</h1>
 
-LIVE • LAST 24 HOURS
-
-</div>
-
-
-<h1>
-
-What's brewing in
-
-<span id="heroState">
-    Uttar Pradesh
-</span>?
-
-</h1>
-
-
-<p>
-Politics, public opinion, breaking news,
-creators and conversations — all from
-your state, in one place.
-</p>
-
+<p>Politics, public opinion, breaking news, creators and conversations — all from your state, in one place.</p>
 
 <div class="hero-actions">
 
-
-<select
-    class="state-selector"
-    id="heroStateSelector"
-    onchange="changeStateByName(this.value)"
->
-
-<option value="1">Uttar Pradesh</option>
-<option value="2">Delhi</option>
-<option value="3">Maharashtra</option>
-<option value="4">Rajasthan</option>
-<option value="5">Bihar</option>
-<option value="6">Jharkhand</option>
-<option value="7">Madhya Pradesh</option>
-<option value="8">West Bengal</option>
-<option value="9">Tamil Nadu</option>
-<option value="10">Karnataka</option>
-<option value="11">Gujarat</option>
-<option value="12">Haryana</option>
-
+<select class="state-selector" id="heroStateSelector" onchange="changeStateByName(this.value)">
+    <option value="1">Uttar Pradesh</option>
+    <option value="2">Delhi</option>
+    <option value="3">Maharashtra</option>
+    <option value="4">Rajasthan</option>
+    <option value="5">Bihar</option>
+    <option value="6">Jharkhand</option>
+    <option value="7">Madhya Pradesh</option>
+    <option value="8">West Bengal</option>
+    <option value="9">Tamil Nadu</option>
+    <option value="10">Karnataka</option>
+    <option value="11">Gujarat</option>
+    <option value="12">Haryana</option>
 </select>
 
-
-<button
-    class="btn btn-pink"
-    onclick="scrollToSection('trending')"
->
-    🔥 See what's trending
-</button>
+<button class="btn btn-pink" onclick="scrollToSection('trending')">🔥 See what's trending</button>
 
 </div>
-
 </div>
-
 </section>
 
-
-
-<!-- =====================================
-     HOT TOPICS
-===================================== -->
-
-<section
-    class="section"
-    id="trending"
->
-
+<!-- HOT TOPICS -->
+<section class="section" id="trending">
 <div class="section-head">
-
-<div>
-
-<h2>
-    🔥 Hot Topics
-</h2>
-
-<p>
-    Trending conversations in
-    <span id="topicStateName">
-        Uttar Pradesh
-    </span>
-</p>
-
+    <div>
+        <h2>🔥 Hot Topics</h2>
+        <p>Trending conversations in <span id="topicStateName">Uttar Pradesh</span></p>
+    </div>
+    <span class="see-all">Live</span>
 </div>
-
-<span class="see-all">
-    Live
-</span>
-
+<div class="topic-grid" id="topicGrid">
+    <div class="loading">Loading hot topics...</div>
 </div>
-
-
-<div
-    class="topic-grid"
-    id="topicGrid"
->
-
-<div class="loading">
-    Loading hot topics...
-</div>
-
-</div>
-
 </section>
 
-
-
-<!-- =====================================
-     LAST 24 HOURS
-===================================== -->
-
-<section
-    class="section"
-    id="voices"
->
-
+<!-- LAST 24 HOURS -->
+<section class="section" id="voices">
 <div class="section-head">
-
-<div>
-
-<h2>
-    ⚡ Last 24 Hours
-</h2>
-
-<p>
-    Fresh updates from people and creators
-</p>
-
+    <div>
+        <h2>⚡ Last 24 Hours</h2>
+        <p>Fresh updates from people and creators</p>
+    </div>
+    <span class="see-all">Latest</span>
 </div>
-
-<span class="see-all">
-    Latest
-</span>
-
+<div class="feed" id="postFeed">
+    <div class="loading">Loading latest updates...</div>
 </div>
-
-
-<div
-    class="feed"
-    id="postFeed"
->
-
-<div class="loading">
-    Loading latest updates...
-</div>
-
-</div>
-
 </section>
 
-
-
-<!-- =====================================
-     VIDEOS
-===================================== -->
-
-<section
-    class="section"
-    id="videos"
->
-
+<!-- VIDEOS -->
+<section class="section" id="videos">
 <div class="section-head">
-
-<div>
-
-<h2>
-    🎥 Videos & Vlogs
-</h2>
-
-<p>
-    Latest YouTube coverage from
-    <span id="videoStateName">
-        Uttar Pradesh
-    </span>
-</p>
-
+    <div>
+        <h2>🎥 Videos & Vlogs</h2>
+        <p>Latest YouTube coverage from <span id="videoStateName">Uttar Pradesh</span></p>
+    </div>
+    <span class="see-all">Live</span>
 </div>
-
-<span class="see-all">
-    Live
-</span>
-
+<div class="video-grid" id="videoGrid">
+    <div class="loading">Loading videos...</div>
 </div>
-
-
-<div
-    class="video-grid"
-    id="videoGrid"
->
-
-<div class="loading">
-    Loading videos...
-</div>
-
-</div>
-
 </section>
 
-
-
-<!-- =====================================
-     NEWS
-===================================== -->
-
-<section
-    class="section"
-    id="news"
->
-
+<!-- NEWS -->
+<section class="section" id="news">
 <div class="section-head">
-
-<div>
-
-<h2>
-    📰 State News
-</h2>
-
-<p>
-    Real-time news from
-    <span id="newsStateName">
-        Uttar Pradesh
-    </span>
-</p>
-
+    <div>
+        <h2>📰 State News</h2>
+        <p>Real-time news from <span id="newsStateName">Uttar Pradesh</span></p>
+    </div>
+    <span class="see-all">Latest</span>
 </div>
-
-<span class="see-all">
-    Latest
-</span>
-
+<div class="news-list" id="newsList">
+    <div class="loading">Loading news...</div>
 </div>
-
-
-<div
-    class="news-list"
-    id="newsList"
->
-
-<div class="loading">
-    Loading news...
-</div>
-
-</div>
-
 </section>
-
 
 </main>
 
-
-
-<!-- =====================================
-     RIGHT SIDEBAR
-===================================== -->
-
+<!-- RIGHT SIDEBAR -->
 <aside class="rightbar">
 
+<div class="right-card">
+    <h3>🌍 Trending Worldwide</h3>
+    <p style="color:var(--muted);font-size:12px;margin-top:5px;">What's gaining attention around the world</p>
+    <div id="risingTopics">
+        <div class="loading" style="margin-top:15px">Loading...</div>
+    </div>
+</div>
 
 <div class="right-card">
-
-<h3>
-    🌍 Trending Worldwide
-</h3>
-
-<p
-    style="
-        color:var(--muted);
-        font-size:12px;
-        margin-top:5px;
-    "
->
-    What's gaining attention around the world
-</p>
-
-
-<div id="risingTopics">
-
-<div class="loading" style="margin-top:15px">
-    Loading...
+    <h3>💡 Political Tea</h3>
+    <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-top:8px">
+        News tells you what happened. Political Tea lets you hear what people think about it.
+    </p>
+    <button class="btn btn-dark" style="width:100%;margin-top:15px" onclick="openCreateModal()">Share your opinion</button>
 </div>
-
-</div>
-
-</div>
-
-
-<div class="right-card">
-
-<h3>
-    💡 Political Tea
-</h3>
-
-<p
-    style="
-        color:var(--muted);
-        font-size:13px;
-        line-height:1.6;
-        margin-top:8px
-    "
->
-    News tells you what happened.
-    Political Tea lets you hear what
-    people think about it.
-</p>
-
-
-<button
-    class="btn btn-dark"
-    style="width:100%;margin-top:15px"
-    onclick="openCreateModal()"
->
-    Share your opinion
-</button>
-
-</div>
-
 
 </aside>
 
 </div>
-
 </div>
 
-
-
-<!-- =====================================
-     MOBILE NAV
-===================================== -->
-
+<!-- MOBILE NAV -->
 <nav class="mobile-nav">
-
-<button
-    class="active"
-    onclick="window.scrollTo({
-        top:0,
-        behavior:'smooth'
-    })"
->
-    🏠
-    <br>
-    Home
-</button>
-
-
-<button
-    onclick="scrollToSection('trending')"
->
-    🔥
-    <br>
-    Trending
-</button>
-
-
-<button
-    onclick="openCreateModal()"
->
-    ＋
-    <br>
-    Create
-</button>
-
-
-<button
-    onclick="scrollToSection('videos')"
->
-    🎥
-    <br>
-    Videos
-</button>
-
-
-<button
-    onclick="handleAuthClick()"
->
-    👤
-    <br>
-    Profile
-</button>
-
+    <button class="active" onclick="window.scrollTo({top:0,behavior:'smooth'})">🏠<br>Home</button>
+    <button onclick="scrollToSection('trending')">🔥<br>Trending</button>
+    <button onclick="openCreateModal()">＋<br>Create</button>
+    <button onclick="scrollToSection('videos')">🎥<br>Videos</button>
+    <button onclick="handleAuthClick()">👤<br>Profile</button>
 </nav>
 
-
-
-<!-- =====================================
-     CREATE POST MODAL
-===================================== -->
-
-<div
-    class="modal"
-    id="postModal"
->
-
+<!-- CREATE POST MODAL -->
+<div class="modal" id="postModal">
 <div class="modal-box">
 
 <div class="modal-head">
-
-<div>
-
-<h2 id="modalTitle">
-    Share your take
-</h2>
-
-<p
-    style="
-        color:var(--muted);
-        font-size:12px;
-        margin-top:4px
-    "
->
-    Tell your state what you think.
-</p>
-
+    <div>
+        <h2 id="modalTitle">Share your take</h2>
+        <p style="color:var(--muted);font-size:12px;margin-top:4px">Tell your state what you think.</p>
+    </div>
+    <button class="close" onclick="closeModal('postModal')">✕</button>
 </div>
-
-
-<button
-    class="close"
-    onclick="closeModal('postModal')"
->
-    ✕
-</button>
-
-</div>
-
-
 
 <div class="form-group">
-
-<label>
-    POST TYPE
-</label>
-
-<select
-    class="form-select"
-    id="postType"
->
-
-<option value="Opinion">
-    Opinion
-</option>
-
-<option value="Blog">
-    Blog
-</option>
-
-<option value="Vlog">
-    Vlog
-</option>
-
-<option value="Analysis">
-    Analysis
-</option>
-
-</select>
-
+    <label>POST TYPE</label>
+    <select class="form-select" id="postType">
+        <option value="Opinion">Opinion</option>
+        <option value="Blog">Blog</option>
+        <option value="Vlog">Vlog</option>
+        <option value="Analysis">Analysis</option>
+    </select>
 </div>
-
-
 
 <div class="form-group">
-
-<label>
-    TITLE
-</label>
-
-<input
-    class="form-input"
-    id="postTitle"
-    placeholder="Give your post a strong headline..."
->
-
+    <label>TITLE</label>
+    <input class="form-input" id="postTitle" placeholder="Give your post a strong headline...">
 </div>
-
-
 
 <div class="form-group">
-
-<label>
-    CONTENT
-</label>
-
-
-<div class="editor-toolbar">
-
-<button onclick="formatText('bold')">
-    B
-</button>
-
-<button onclick="formatText('italic')">
-    I
-</button>
-
-<button onclick="formatText('underline')">
-    U
-</button>
-
-<button onclick="formatText('formatBlock','H2')">
-    H
-</button>
-
-<button onclick="formatText('insertUnorderedList')">
-    • List
-</button>
-
-<button onclick="formatText('formatBlock','blockquote')">
-    “ Quote
-</button>
-
+    <label>CONTENT</label>
+    <div class="editor-toolbar">
+        <button onclick="formatText('bold')">B</button>
+        <button onclick="formatText('italic')">I</button>
+        <button onclick="formatText('underline')">U</button>
+        <button onclick="formatText('formatBlock','H2')">H</button>
+        <button onclick="formatText('insertUnorderedList')">• List</button>
+        <button onclick="formatText('formatBlock','blockquote')">“ Quote</button>
+    </div>
+    <div class="editor" id="postEditor" contenteditable="true"></div>
 </div>
-
-
-<div
-    class="editor"
-    id="postEditor"
-    contenteditable="true"
-></div>
-
-</div>
-
-
 
 <div class="form-group">
-
-<label>
-    COVER IMAGE URL
-</label>
-
-<input
-    class="form-input"
-    id="postImage"
-    placeholder="https://..."
->
-
+    <label>COVER IMAGE URL</label>
+    <input class="form-input" id="postImage" placeholder="https://...">
 </div>
-
-
 
 <div class="modal-actions">
-
-<button
-    class="btn btn-light"
-    onclick="closeModal('postModal')"
->
-    Cancel
-</button>
-
-
-<button
-    class="btn btn-pink"
-    onclick="savePost()"
->
-    Publish Post
-</button>
-
+    <button class="btn btn-light" onclick="closeModal('postModal')">Cancel</button>
+    <button class="btn btn-pink" onclick="savePost()">Publish Post</button>
 </div>
 
 </div>
-
 </div>
 
-
-
-<!-- =====================================
-     STATE MODAL
-===================================== -->
-
-<div
-    class="modal"
-    id="stateModal"
->
-
-<div
-    class="modal-box"
-    style="max-width:500px"
->
+<!-- STATE MODAL -->
+<div class="modal" id="stateModal">
+<div class="modal-box" style="max-width:500px">
 
 <div class="modal-head">
-
-<h2>
-    📍 Choose your state
-</h2>
-
-<button
-    class="close"
-    onclick="closeModal('stateModal')"
->
-    ✕
-</button>
-
+    <h2>📍 Choose your state</h2>
+    <button class="close" onclick="closeModal('stateModal')">✕</button>
 </div>
 
-
-<p
-    style="
-        color:var(--muted);
-        font-size:13px;
-        margin-bottom:18px
-    "
->
-    Select the state you want Political Tea
-    to focus on.
+<p style="color:var(--muted);font-size:13px;margin-bottom:18px">
+    Select the state you want Political Tea to focus on.
 </p>
 
-
-<select
-    class="form-select"
-    id="stateSelectModal"
->
-
-<option value="1">Uttar Pradesh</option>
-<option value="2">Delhi</option>
-<option value="3">Maharashtra</option>
-<option value="4">Rajasthan</option>
-<option value="5">Bihar</option>
-<option value="6">Jharkhand</option>
-<option value="7">Madhya Pradesh</option>
-<option value="8">West Bengal</option>
-<option value="9">Tamil Nadu</option>
-<option value="10">Karnataka</option>
-<option value="11">Gujarat</option>
-<option value="12">Haryana</option>
-
+<select class="form-select" id="stateSelectModal">
+    <option value="1">Uttar Pradesh</option>
+    <option value="2">Delhi</option>
+    <option value="3">Maharashtra</option>
+    <option value="4">Rajasthan</option>
+    <option value="5">Bihar</option>
+    <option value="6">Jharkhand</option>
+    <option value="7">Madhya Pradesh</option>
+    <option value="8">West Bengal</option>
+    <option value="9">Tamil Nadu</option>
+    <option value="10">Karnataka</option>
+    <option value="11">Gujarat</option>
+    <option value="12">Haryana</option>
 </select>
 
-
-<button
-    class="btn btn-pink"
-    style="
-        width:100%;
-        margin-top:15px
-    "
-    onclick="saveState()"
->
-    Continue
-</button>
+<button class="btn btn-pink" style="width:100%;margin-top:15px" onclick="saveState()">Continue</button>
 
 </div>
-
 </div>
-<!-- =====================================
-     PROFILE MODAL
-===================================== -->
 
-<div
-    class="modal"
-    id="profileModal"
->
-
-<div
-    class="modal-box"
-    style="max-width:560px"
->
+<!-- PROFILE MODAL -->
+<div class="modal" id="profileModal">
+<div class="modal-box" style="max-width:560px">
 
 <div class="modal-head">
-
-<div>
-    <h2>👤 My Profile</h2>
-
-    <p
-        style="
-            color:var(--muted);
-            font-size:12px;
-            margin-top:4px
-        "
-    >
-        Your Political Tea profile
-    </p>
+    <div>
+        <h2>👤 My Profile</h2>
+        <p style="color:var(--muted);font-size:12px;margin-top:4px">Your Political Tea profile</p>
+    </div>
+    <button class="close" onclick="closeModal('profileModal')">✕</button>
 </div>
-
-<button
-    class="close"
-    onclick="closeModal('profileModal')"
->
-    ✕
-</button>
-
-</div>
-
 
 <!-- PROFILE VIEW -->
-
 <div id="profileView">
 
-    <div
-        style="
-            display:flex;
-            align-items:center;
-            gap:15px;
-            padding:18px;
-            background:#f8f4fb;
-            border-radius:18px;
-            margin-bottom:18px;
-        "
-    >
-
-        <div
-            id="profileLargeAvatar"
-            class="avatar"
-            style="
-                width:65px;
-                height:65px;
-                font-size:25px;
-                flex:none;
-            "
-        >
-            P
-        </div>
-
+    <div style="display:flex;align-items:center;gap:15px;padding:18px;background:#f8f4fb;border-radius:18px;margin-bottom:18px;">
+        <div id="profileLargeAvatar" class="avatar" style="width:65px;height:65px;font-size:25px;flex:none;">P</div>
         <div>
-
-            <h3 id="profileName">
-                User
-            </h3>
-
-            <p
-                id="profileEmail"
-                style="
-                    color:var(--muted);
-                    font-size:13px;
-                    margin-top:3px;
-                "
-            >
-                email@example.com
-            </p>
-
+            <h3 id="profileName">User</h3>
+            <p id="profileEmail" style="color:var(--muted);font-size:13px;margin-top:3px;">email@example.com</p>
         </div>
-
     </div>
-
 
     <div class="form-group">
-
-        <label>
-            NAME
-        </label>
-
-        <div
-            id="profileDisplayName"
-            style="
-                padding:12px 14px;
-                background:#f8f4fb;
-                border-radius:12px;
-                font-size:14px;
-            "
-        >
-            —
-        </div>
-
+        <label>NAME</label>
+        <div id="profileDisplayName" style="padding:12px 14px;background:#f8f4fb;border-radius:12px;font-size:14px;">—</div>
     </div>
-
 
     <div class="form-group">
-
-        <label>
-            EMAIL
-        </label>
-
-        <div
-            id="profileDisplayEmail"
-            style="
-                padding:12px 14px;
-                background:#f8f4fb;
-                border-radius:12px;
-                font-size:14px;
-            "
-        >
-            —
-        </div>
-
+        <label>EMAIL</label>
+        <div id="profileDisplayEmail" style="padding:12px 14px;background:#f8f4fb;border-radius:12px;font-size:14px;">—</div>
     </div>
-
 
     <div class="form-group">
-
-        <label>
-            STATE
-        </label>
-
-        <div
-            id="profileDisplayState"
-            style="
-                padding:12px 14px;
-                background:#f8f4fb;
-                border-radius:12px;
-                font-size:14px;
-            "
-        >
-            —
-        </div>
-
+        <label>STATE</label>
+        <div id="profileDisplayState" style="padding:12px 14px;background:#f8f4fb;border-radius:12px;font-size:14px;">—</div>
     </div>
-
 
     <div class="modal-actions">
-
-        <button
-            class="btn btn-light"
-            onclick="logout()"
-        >
-            Logout
-        </button>
-
-        <button
-            class="btn btn-pink"
-            onclick="openEditProfile()"
-        >
-            ✏️ Edit Profile
-        </button>
-
+        <button class="btn btn-light" onclick="logout()">Logout</button>
+        <button class="btn btn-pink" onclick="openEditProfile()">✏️ Edit Profile</button>
     </div>
 
 </div>
 
-
 <!-- EDIT PROFILE -->
-
-<div
-    id="profileEditView"
-    style="display:none"
->
+<div id="profileEditView" style="display:none">
 
     <div class="form-group">
-
-        <label>
-            NAME
-        </label>
-
-        <input
-            class="form-input"
-            id="editProfileName"
-            placeholder="Enter your name"
-        >
-
+        <label>NAME</label>
+        <input class="form-input" id="editProfileName" placeholder="Enter your name">
     </div>
 
-
     <div class="form-group">
-
-        <label>
-            EMAIL
-        </label>
-
-        <input
-            class="form-input"
-            id="editProfileEmail"
-            type="email"
-            placeholder="Enter your email"
-        >
-
+        <label>EMAIL</label>
+        <input class="form-input" id="editProfileEmail" type="email" placeholder="Enter your email">
     </div>
 
-
     <div class="form-group">
-
-        <label>
-            STATE
-        </label>
-
-        <select
-            class="form-select"
-            id="editProfileState"
-        >
-
+        <label>STATE</label>
+        <select class="form-select" id="editProfileState">
             <option value="1">Uttar Pradesh</option>
             <option value="2">Delhi</option>
             <option value="3">Maharashtra</option>
@@ -2432,67 +571,27 @@ your state, in one place.
             <option value="10">Karnataka</option>
             <option value="11">Gujarat</option>
             <option value="12">Haryana</option>
-
         </select>
-
     </div>
-
 
     <div class="modal-actions">
-
-        <button
-            class="btn btn-light"
-            onclick="cancelEditProfile()"
-        >
-            Cancel
-        </button>
-
-        <button
-            class="btn btn-pink"
-            onclick="saveProfile()"
-        >
-            Save Changes
-        </button>
-
+        <button class="btn btn-light" onclick="cancelEditProfile()">Cancel</button>
+        <button class="btn btn-pink" onclick="saveProfile()">Save Changes</button>
     </div>
 
 </div>
 
 </div>
-
 </div>
 
-
-<!-- =====================================
-     TOAST
-===================================== -->
-
-<div
-    class="toast"
-    id="toast"
->
-    Done!
-</div>
-
-
+<!-- TOAST -->
+<div class="toast" id="toast">Done!</div>
 
 <script>
 
 /* =====================================================
    CONFIGURATION
 ===================================================== */
-
-/*
-   FastAPI backend URL.
-
-   If your backend is running with:
-
-   uvicorn backend.main:app --reload
-
-   then normally use:
-
-   http://127.0.0.1:8000
-*/
 
 const API_BASE_URL = "https://politicaltea.onrender.com";
 
@@ -2502,7 +601,6 @@ const API_BASE_URL = "https://politicaltea.onrender.com";
 ===================================================== */
 
 const STATE_MAP = {
-
     1:"Uttar Pradesh",
     2:"Delhi",
     3:"Maharashtra",
@@ -2515,58 +613,28 @@ const STATE_MAP = {
     10:"Karnataka",
     11:"Gujarat",
     12:"Haryana"
-
 };
 
+let currentStateId = parseInt(localStorage.getItem("pt_state_id") || "1");
+let currentState = STATE_MAP[currentStateId] || "Uttar Pradesh";
 
-let currentStateId =
-    parseInt(
-        localStorage.getItem("pt_state_id") || "1"
-    );
+let stateContent = { news:[], videos:[] };
 
-
-let currentState =
-    STATE_MAP[currentStateId] ||
-    "Uttar Pradesh";
-
-
-let stateContent = {
-
-    news:[],
-    videos:[]
-
-};
-
-
-let posts =
-    JSON.parse(
-        localStorage.getItem("pt_posts") || "[]"
-    );
-
+let posts = JSON.parse(localStorage.getItem("pt_posts") || "[]");
 
 let editingPostId = null;
-
 
 
 /* =====================================================
    INITIALIZATION
 ===================================================== */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
-
-        await loadCurrentUser();
-
-        updateUserAvatar();
-
-        updateStateUI();
-
-        await loadStateContent();
-
-    }
-);
-
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadCurrentUser();
+    updateUserAvatar();
+    updateStateUI();
+    await loadStateContent();
+});
 
 
 /* =====================================================
@@ -2575,47 +643,18 @@ document.addEventListener(
 
 function updateStateUI(){
 
-    currentState =
-        STATE_MAP[currentStateId] ||
-        "Uttar Pradesh";
+    currentState = STATE_MAP[currentStateId] || "Uttar Pradesh";
 
-    document.getElementById(
-        "heroState"
-    ).textContent = currentState;
-
-    document.getElementById(
-        "navState"
-    ).textContent = currentState;
-
-    document.getElementById(
-        "sidebarState"
-    ).textContent = currentState;
-
-    document.getElementById(
-        "topicStateName"
-    ).textContent = currentState;
-
-    // risingStateName HTML me nahi hai,
-    // isliye isko intentionally remove kiya gaya hai.
-
-    document.getElementById(
-        "videoStateName"
-    ).textContent = currentState;
-
-    document.getElementById(
-        "newsStateName"
-    ).textContent = currentState;
-
-    document.getElementById(
-        "heroStateSelector"
-    ).value = String(currentStateId);
-
-    document.getElementById(
-        "stateSelectModal"
-    ).value = String(currentStateId);
+    document.getElementById("heroState").textContent = currentState;
+    document.getElementById("navState").textContent = currentState;
+    document.getElementById("sidebarState").textContent = currentState;
+    document.getElementById("topicStateName").textContent = currentState;
+    document.getElementById("videoStateName").textContent = currentState;
+    document.getElementById("newsStateName").textContent = currentState;
+    document.getElementById("heroStateSelector").value = String(currentStateId);
+    document.getElementById("stateSelectModal").value = String(currentStateId);
 
 }
-
 
 
 /* =====================================================
@@ -2624,32 +663,18 @@ function updateStateUI(){
 
 async function changeStateByName(stateId){
 
-    currentStateId =
-        parseInt(stateId);
+    currentStateId = parseInt(stateId);
+    currentState = STATE_MAP[currentStateId];
 
-
-    currentState =
-        STATE_MAP[currentStateId];
-
-
-    localStorage.setItem(
-        "pt_state_id",
-        currentStateId
-    );
-
+    localStorage.setItem("pt_state_id", currentStateId);
 
     updateStateUI();
 
-
-    showToast(
-        `Loading Political Tea for ${currentState}...`
-    );
-
+    showToast(`Loading Political Tea for ${currentState}...`);
 
     await loadStateContent();
 
 }
-
 
 
 /* =====================================================
@@ -2657,40 +682,15 @@ async function changeStateByName(stateId){
 ===================================================== */
 
 function openStateModal(){
-
-    document.getElementById(
-        "stateSelectModal"
-    ).value =
-        String(currentStateId);
-
-
-    document.getElementById(
-        "stateModal"
-    ).classList.add("show");
-
+    document.getElementById("stateSelectModal").value = String(currentStateId);
+    document.getElementById("stateModal").classList.add("show");
 }
-
-
 
 async function saveState(){
-
-    const selected =
-        document.getElementById(
-            "stateSelectModal"
-        ).value;
-
-
-    await changeStateByName(
-        selected
-    );
-
-
-    closeModal(
-        "stateModal"
-    );
-
+    const selected = document.getElementById("stateSelectModal").value;
+    await changeStateByName(selected);
+    closeModal("stateModal");
 }
-
 
 
 /* =====================================================
@@ -2707,11 +707,7 @@ async function fetchAuthenticated(path){
 
     const response = await fetch(
         `${API_BASE_URL}${path}`,
-        {
-            headers:{
-                "Authorization": `Bearer ${token}`
-            }
-        }
+        { headers:{ "Authorization": `Bearer ${token}` } }
     );
 
     if(!response.ok){
@@ -2737,12 +733,10 @@ async function loadCurrentUser(){
 
         updateUserAvatar();
 
-        const profileText =
-            document.getElementById("profileText");
+        const profileText = document.getElementById("profileText");
 
         if(profileText && user.name){
-            profileText.textContent =
-                user.name;
+            profileText.textContent = user.name;
         }
 
         if(user.state_id !== null && user.state_id !== undefined){
@@ -2757,388 +751,73 @@ async function loadCurrentUser(){
 
 }
 
+
 async function loadStateContent(){
 
-    const topicGrid =
-        document.getElementById("topicGrid");
+    const topicGrid = document.getElementById("topicGrid");
+    const newsList = document.getElementById("newsList");
+    const videoGrid = document.getElementById("videoGrid");
+    const risingTopics = document.getElementById("risingTopics");
 
-    const newsList =
-        document.getElementById("newsList");
-
-    const videoGrid =
-        document.getElementById("videoGrid");
-
-    const risingTopics =
-        document.getElementById("risingTopics");
-
-
-    topicGrid.innerHTML = `
-        <div class="loading">
-            🤖 AI is analyzing the last 24 hours in
-            ${escapeHTML(currentState)}...
-        </div>
-    `;
-
-    newsList.innerHTML = `
-        <div class="loading">
-            📰 Fetching last 24 hours news...
-        </div>
-    `;
-
-    videoGrid.innerHTML = `
-        <div class="loading">
-            🎥 Fetching last 24 hours videos...
-        </div>
-    `;
-
-    risingTopics.innerHTML = `
-        <div class="loading">
-            🌎 AI is analyzing worldwide trends...
-        </div>
-    `;
-
+    topicGrid.innerHTML = `<div class="loading">🤖 AI is analyzing the last 24 hours in ${escapeHTML(currentState)}...</div>`;
+    newsList.innerHTML = `<div class="loading">📰 Fetching last 24 hours news...</div>`;
+    videoGrid.innerHTML = `<div class="loading">🎥 Fetching last 24 hours videos...</div>`;
+    risingTopics.innerHTML = `<div class="loading">🌎 AI is analyzing worldwide trends...</div>`;
 
     try{
 
-        /*
-        ==========================================
-        1. GET LAST 24 HOURS STATE CONTENT
-        ==========================================
-        */
-
-        const contentResponse = await fetch(
-            `${API_BASE_URL}/api/content/${currentStateId}`
-        );
-
+        // 1. State content (news + videos)
+        const contentResponse = await fetch(`${API_BASE_URL}/api/content/${currentStateId}`);
 
         if(!contentResponse.ok){
-
-            throw new Error(
-                `Content API returned ${contentResponse.status}`
-            );
-
+            throw new Error(`Content API returned ${contentResponse.status}`);
         }
 
-
-        const data =
-            await contentResponse.json();
-
-
-        console.log(
-            "Last 24 hours content:",
-            data
-        );
-
-
+        const data = await contentResponse.json();
         stateContent = data;
 
+        renderDynamicNews(data.news || []);
+        renderDynamicVideos(data.videos || []);
 
-        /*
-        ==========================================
-        2. RENDER NEWS
-        ==========================================
-        */
-
-        renderDynamicNews(
-            data.news || []
-        );
-
-
-        /*
-        ==========================================
-        3. RENDER VIDEOS
-        ==========================================
-        */
-
-        renderDynamicVideos(
-            data.videos || []
-        );
-
-
-        /*
-        ==========================================
-        4. AI TOPICS
-        ==========================================
-        */
-
-        const aiResponse = await fetch(
-            `${API_BASE_URL}/api/ai/trends/${currentStateId}`
-        );
-
+        // 2. AI topics
+        const aiResponse = await fetch(`${API_BASE_URL}/api/ai/trends/${currentStateId}`);
 
         if(!aiResponse.ok){
-
-            throw new Error(
-                `AI Trends API returned ${aiResponse.status}`
-            );
-
+            throw new Error(`AI Trends API returned ${aiResponse.status}`);
         }
 
+        const aiData = await aiResponse.json();
 
-        const aiData =
-            await aiResponse.json();
+        renderTrendingTopics(aiData.state_topics || []);
+        renderRisingTopics(aiData.worldwide_topics || []);
 
-
-        console.log(
-            "AI Trends:",
-            aiData
-        );
-
-
-        /*
-        ==========================================
-        5. HOT TOPICS
-        ==========================================
-        */
-
-        renderTrendingTopics(
-            aiData.state_topics || []
-        );
-
-
-        /*
-        ==========================================
-        6. WORLDWIDE TRENDS
-        ==========================================
-        */
-
-        renderRisingTopics(
-            aiData.worldwide_topics || []
-        );
-
-
-        showToast(
-            `${currentState} — last 24 hours updated`
-        );
-
+        showToast(`${currentState} — last 24 hours updated`);
 
     }
     catch(error){
 
-        console.error(
-            "Political Tea loading error:",
-            error
-        );
-
-
-        /*
-        ------------------------------------------
-        AI ERROR
-        ------------------------------------------
-        */
+        console.error("Political Tea loading error:", error);
 
         topicGrid.innerHTML = `
             <div class="error-box">
                 🤖 AI topics could not be generated.
                 <br><br>
-                <small>
-                    ${escapeHTML(error.message)}
-                </small>
-            </div>
-        `;
+                <small>${escapeHTML(error.message)}</small>
+            </div>`;
 
-
-        risingTopics.innerHTML = `
-            <div class="error-box">
-                🌎 Worldwide trends could not be loaded.
-            </div>
-        `;
-
-
-        /*
-        ------------------------------------------
-        NEWS ERROR
-        ------------------------------------------
-        */
+        risingTopics.innerHTML = `<div class="error-box">🌎 Worldwide trends could not be loaded.</div>`;
 
         if(!stateContent.news?.length){
-
-            newsList.innerHTML = `
-                <div class="error-box">
-                    📰 Unable to load last 24 hours news.
-                </div>
-            `;
-
+            newsList.innerHTML = `<div class="error-box">📰 Unable to load last 24 hours news.</div>`;
         }
-
-
-        /*
-        ------------------------------------------
-        VIDEO ERROR
-        ------------------------------------------
-        */
 
         if(!stateContent.videos?.length){
-
-            videoGrid.innerHTML = `
-                <div class="error-box">
-                    🎥 Unable to load videos from the
-                    last 24 hours.
-                </div>
-            `;
-
+            videoGrid.innerHTML = `<div class="error-box">🎥 Unable to load videos from the last 24 hours.</div>`;
         }
 
     }
 
 }
-
-
-/* =====================================================
-   DYNAMIC HOT TOPICS
-===================================================== */
-
-/*
-   NewsAPI doesn't directly give a "trending topics"
-   endpoint in your current implementation.
-
-   So we derive topics from the latest news titles.
-
-   Example:
-
-   "UP Government Announces..."
-   "UP Government launches..."
-   "UP Government decision..."
-
-   → UP Government
-
-   This gives us state-specific topics without
-   hard-coding topics for each state.
-*/
-
-function generateTopicsFromNews(news){
-
-    if(!news || news.length === 0){
-
-        return [];
-
-    }
-
-
-    const stopWords = new Set([
-
-        "the",
-        "and",
-        "for",
-        "with",
-        "from",
-        "that",
-        "this",
-        "after",
-        "into",
-        "over",
-        "under",
-        "about",
-        "their",
-        "there",
-        "have",
-        "has",
-        "will",
-        "would",
-        "could",
-        "should",
-        "india",
-        "state",
-        "today",
-        "latest",
-        "news",
-        "says",
-        "said",
-        "new"
-
-    ]);
-
-
-    const frequency = {};
-
-
-    news.forEach(
-        article => {
-
-            const title =
-                article.title || "";
-
-
-            const words =
-                title
-                .replace(
-                    /[^a-zA-Z0-9\s]/g,
-                    " "
-                )
-                .split(/\s+/);
-
-
-            words.forEach(
-                word => {
-
-                    const clean =
-                        word
-                        .trim()
-                        .toLowerCase();
-
-
-                    if(
-                        clean.length < 4 ||
-                        stopWords.has(clean) ||
-                        /^\d+$/.test(clean)
-                    ){
-
-                        return;
-
-                    }
-
-
-                    frequency[clean] =
-                        (frequency[clean] || 0) + 1;
-
-                }
-            );
-
-        }
-    );
-
-
-    return Object
-        .entries(frequency)
-        .sort(
-            (a,b) => b[1] - a[1]
-        )
-        .slice(0,6)
-        .map(
-            ([word,count]) => ({
-
-                title:
-                    capitalizeWords(word),
-
-                mentions:
-                    `${count} related ${count === 1 ? "story" : "stories"}`,
-
-                change:
-                    `+${Math.min(
-                        count * 7,
-                        38
-                    )}%`
-
-            })
-        );
-
-}
-
-
-
-function capitalizeWords(text){
-
-    return text
-        .split(" ")
-        .map(
-            word =>
-                word.charAt(0).toUpperCase() +
-                word.slice(1)
-        )
-        .join(" ");
-
-}
-
 
 
 /* =====================================================
@@ -3147,272 +826,82 @@ function capitalizeWords(text){
 
 function renderTrendingTopics(topics){
 
-    const grid =
-        document.getElementById("topicGrid");
-
+    const grid = document.getElementById("topicGrid");
     grid.innerHTML = "";
-
 
     if(!topics || topics.length === 0){
-
         grid.innerHTML = `
             <div class="loading">
-                No major trending topics found in
-                ${escapeHTML(currentState)}
-                in the last 24 hours.
+                No major trending topics found in ${escapeHTML(currentState)} in the last 24 hours.
+            </div>`;
+        return;
+    }
+
+    topics.slice(0,6).forEach((topic,index) => {
+
+        const card = document.createElement("div");
+        card.className = "topic-card";
+
+        const title = topic.title || topic.topic || "Untitled trend";
+        const mentions = topic.mentions || topic.reason || "Based on recent coverage";
+        const change = topic.change || topic.trend || "Trending";
+
+        card.innerHTML = `
+            <div class="topic-number">#${String(index + 1).padStart(2,"0")}</div>
+            <h3>${escapeHTML(title)}</h3>
+            <div class="topic-meta">
+                ${escapeHTML(mentions)} ·
+                <strong style="color:var(--green)">${escapeHTML(change)}</strong>
             </div>
+            <div class="topic-source">🤖 AI · Last 24 hours</div>
         `;
 
-        return;
+        grid.appendChild(card);
 
-    }
-
-
-    topics.slice(0,6).forEach(
-        (topic,index) => {
-
-            const card =
-                document.createElement("div");
-
-            card.className =
-                "topic-card";
-
-
-            const title =
-                topic.title ||
-                topic.topic ||
-                "Untitled trend";
-
-
-            const mentions =
-                topic.mentions ||
-                topic.reason ||
-                "Based on recent coverage";
-
-
-            const change =
-                topic.change ||
-                topic.trend ||
-                "Trending";
-
-
-            card.innerHTML = `
-
-                <div class="topic-number">
-                    #${String(index + 1).padStart(2,"0")}
-                </div>
-
-                <h3>
-                    ${escapeHTML(title)}
-                </h3>
-
-                <div class="topic-meta">
-
-                    ${escapeHTML(mentions)}
-
-                    ·
-
-                    <strong
-                        style="color:var(--green)"
-                    >
-                        ${escapeHTML(change)}
-                    </strong>
-
-                </div>
-
-                <div class="topic-source">
-                    🤖 AI · Last 24 hours
-                </div>
-
-            `;
-
-
-            grid.appendChild(card);
-
-        }
-    );
+    });
 
 }
-
-
-function renderTopicLoginState(){
-
-    document.getElementById("topicGrid").innerHTML =
-        `<div class="loading">Log in to load AI trending topics.</div>`;
-    document.getElementById("risingTopics").innerHTML =
-        `<div style="color:var(--muted);font-size:12px;padding-top:15px">
-            Log in to load worldwide trends.
-        </div>`;
-
-}
-
-function renderDynamicTopics(news){
-
-    const grid =
-        document.getElementById(
-            "topicGrid"
-        );
-
-
-    grid.innerHTML = "";
-
-
-    const topics = news || [];
-
-
-    if(!topics.length){
-
-        grid.innerHTML =
-            `<div class="loading">
-                No trending topics found for
-                ${escapeHTML(currentState)}
-                right now.
-            </div>`;
-
-        return;
-
-    }
-
-
-    topics.forEach(
-        (topic,index) => {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "topic-card";
-
-
-            card.innerHTML = `
-
-                <div class="topic-number">
-                    #${String(index + 1).padStart(2,"0")}
-                </div>
-
-                <h3>
-                    ${escapeHTML(topic.title)}
-                </h3>
-
-                <div class="topic-meta">
-                    ${escapeHTML(topic.mentions)}
-                    ·
-                    <strong style="color:var(--green)">
-                        ${escapeHTML(topic.change)}
-                    </strong>
-                </div>
-
-                <div class="topic-source">
-                    Based on latest state news
-                </div>
-
-            `;
-
-
-            grid.appendChild(
-                card
-            );
-
-        }
-    );
-
-}
-
 
 
 /* =====================================================
-   RISING NOW
+   WORLDWIDE TRENDS
 ===================================================== */
 
 function renderRisingTopics(topics){
 
-    const container =
-        document.getElementById("risingTopics");
-
+    const container = document.getElementById("risingTopics");
     container.innerHTML = "";
 
-
     if(!topics || topics.length === 0){
-
         container.innerHTML = `
-            <div
-                style="
-                    color:var(--muted);
-                    font-size:12px;
-                    padding-top:15px;
-                "
-            >
-                No major worldwide trends found
-                right now.
+            <div style="color:var(--muted);font-size:12px;padding-top:15px;">
+                No major worldwide trends found right now.
+            </div>`;
+        return;
+    }
+
+    topics.slice(0,5).forEach((topic,index) => {
+
+        const item = document.createElement("div");
+        item.className = "trend";
+
+        const title = topic.title || topic.topic || "Worldwide trend";
+        const reason = topic.mentions || topic.reason || "Gaining attention";
+        const change = topic.change || topic.trend || "Trending";
+
+        item.innerHTML = `
+            <div class="trend-no">${String(index + 1).padStart(2,"0")}</div>
+            <div>
+                <strong>${escapeHTML(title)}</strong>
+                <span>${escapeHTML(reason)} · ${escapeHTML(change)}</span>
             </div>
         `;
 
-        return;
+        container.appendChild(item);
 
-    }
-
-
-    topics.slice(0,5).forEach(
-        (topic,index) => {
-
-            const item =
-                document.createElement("div");
-
-            item.className =
-                "trend";
-
-
-            const title =
-                topic.title ||
-                topic.topic ||
-                "Worldwide trend";
-
-
-            const reason =
-                topic.mentions ||
-                topic.reason ||
-                "Gaining attention";
-
-
-            const change =
-                topic.change ||
-                topic.trend ||
-                "Trending";
-
-
-            item.innerHTML = `
-
-                <div class="trend-no">
-                    ${String(index + 1).padStart(2,"0")}
-                </div>
-
-                <div>
-
-                    <strong>
-                        ${escapeHTML(title)}
-                    </strong>
-
-                    <span>
-                        ${escapeHTML(reason)}
-                        ·
-                        ${escapeHTML(change)}
-                    </span>
-
-                </div>
-
-            `;
-
-
-            container.appendChild(item);
-
-        }
-    );
+    });
 
 }
-
 
 
 /* =====================================================
@@ -3421,85 +910,38 @@ function renderRisingTopics(topics){
 
 function renderDynamicNews(news){
 
-    const list =
-        document.getElementById("newsList");
-
+    const list = document.getElementById("newsList");
     list.innerHTML = "";
 
     if(!news || news.length === 0){
-
-        list.innerHTML =
-            `<div class="loading">
-                No news found for
-                ${escapeHTML(currentState)}
-                right now.
-            </div>`;
-
+        list.innerHTML = `<div class="loading">No news found for ${escapeHTML(currentState)} right now.</div>`;
         return;
     }
 
     news.forEach(article => {
 
-        const item =
-            document.createElement("article");
-
+        const item = document.createElement("article");
         item.className = "news";
 
-        const image =
-            article.image ||
-            "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=500&q=80";
-
-        const source =
-            article.source ||
-            "News";
-
-        const title =
-            article.title ||
-            "Untitled news";
-
-        const time =
-            article.time ||
-            "Recently";
+        const image = article.image || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=500&q=80";
+        const source = article.source || "News";
+        const title = article.title || "Untitled news";
+        const time = article.time || "Recently";
 
         item.innerHTML = `
-
-            <img
-                class="news-img"
-                src="${escapeAttribute(image)}"
-                alt=""
-                loading="lazy"
-                onerror="this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=500&q=80'"
-            >
-
+            <img class="news-img" src="${escapeAttribute(image)}" alt="" loading="lazy"
+                onerror="this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=500&q=80'">
             <div class="news-content">
-
-                <div class="news-source">
-                    ${escapeHTML(source)}
-                </div>
-
-                <h3>
-                    ${escapeHTML(title)}
-                </h3>
-
-                <time>
-                    ${escapeHTML(time)}
-                </time>
-
+                <div class="news-source">${escapeHTML(source)}</div>
+                <h3>${escapeHTML(title)}</h3>
+                <time>${escapeHTML(time)}</time>
             </div>
-
         `;
 
         item.onclick = () => {
-
             if(article.url){
-
-                window.open(
-                    article.url,
-                    "_blank"
-                );
-
+                window.open(article.url, "_blank");
             }
-
         };
 
         list.appendChild(item);
@@ -3508,95 +950,47 @@ function renderDynamicNews(news){
 
 }
 
+
 /* =====================================================
    DYNAMIC VIDEOS
 ===================================================== */
 
 function renderDynamicVideos(videos){
 
-    const grid =
-        document.getElementById("videoGrid");
-
+    const grid = document.getElementById("videoGrid");
     grid.innerHTML = "";
 
     if(!videos || videos.length === 0){
-
-        grid.innerHTML =
-            `<div class="loading">
-                No YouTube videos found for
-                ${escapeHTML(currentState)}
-                right now.
-            </div>`;
-
+        grid.innerHTML = `<div class="loading">No YouTube videos found for ${escapeHTML(currentState)} right now.</div>`;
         return;
     }
 
     videos.forEach(video => {
 
-        const card =
-            document.createElement("div");
-
+        const card = document.createElement("div");
         card.className = "video-card";
 
-        const thumbnail =
-            video.image ||
-            "https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80";
-
-        const creator =
-            video.creator ||
-            "YouTube";
-
-        const title =
-            video.title ||
-            "Political Tea video";
-
-        const views =
-            video.views ||
-            "";
+        const thumbnail = video.image || "https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80";
+        const creator = video.creator || "YouTube";
+        const title = video.title || "Political Tea video";
+        const views = video.views || "";
 
         card.innerHTML = `
-
             <div class="video-thumb">
-
-                <img
-                    src="${escapeAttribute(thumbnail)}"
-                    alt=""
-                    loading="lazy"
-                    onerror="this.src='https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80'"
-                >
-
-                <div class="play">
-                    ▶
-                </div>
-
+                <img src="${escapeAttribute(thumbnail)}" alt="" loading="lazy"
+                    onerror="this.src='https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80'">
+                <div class="play">▶</div>
             </div>
-
             <div class="video-info">
-
-                <h3>
-                    ${escapeHTML(title)}
-                </h3>
-
-                <small>
-                    ${escapeHTML(creator)}
-                    ${views ? ` · ${escapeHTML(views)}` : ""}
-                </small>
-
+                <h3>${escapeHTML(title)}</h3>
+                <small>${escapeHTML(creator)}${views ? ` · ${escapeHTML(views)}` : ""}</small>
             </div>
-
         `;
 
         card.onclick = () => {
-
             if(video.video_url){
-
-                window.open(
-                    video.video_url,
-                    "_blank"
-                );
-
+                window.open(video.video_url, "_blank");
             }
-
         };
 
         grid.appendChild(card);
@@ -3606,148 +1000,20 @@ function renderDynamicVideos(videos){
 }
 
 
-
-/* =====================================================
-   FORMAT DATE
-===================================================== */
-
-function formatPublishedTime(dateString){
-
-    if(!dateString){
-
-        return "Recently";
-
-    }
-
-
-    const date =
-        new Date(
-            dateString
-        );
-
-
-    if(
-        Number.isNaN(
-            date.getTime()
-        )
-    ){
-
-        return "Recently";
-
-    }
-
-
-    const diff =
-        Date.now() -
-        date.getTime();
-
-
-    const minutes =
-        Math.floor(
-            diff / 60000
-        );
-
-
-    if(minutes < 1){
-
-        return "Just now";
-
-    }
-
-
-    if(minutes < 60){
-
-        return `${minutes} min ago`;
-
-    }
-
-
-    const hours =
-        Math.floor(
-            minutes / 60
-        );
-
-
-    if(hours < 24){
-
-        return `${hours} hr${hours === 1 ? "" : "s"} ago`;
-
-    }
-
-
-    const days =
-        Math.floor(
-            hours / 24
-        );
-
-
-    return `${days} day${days === 1 ? "" : "s"} ago`;
-
-}
-
-
-
 /* =====================================================
    SEARCH
 ===================================================== */
 
 function searchContent(value){
 
-    const query =
-        value
-        .trim()
-        .toLowerCase();
+    const query = value.trim().toLowerCase();
 
-
-    const articles =
-        document.querySelectorAll(
-            "#newsList .news"
-        );
-
-
-    articles.forEach(
-        article => {
-
-            const text =
-                article.textContent
-                .toLowerCase();
-
-
-            article.style.display =
-                !query ||
-                text.includes(query)
-                    ? ""
-                    : "none";
-
-        }
-    );
-
-
-    const postsElements =
-        document.querySelectorAll(
-            "#postFeed .post"
-        );
-
-
-    postsElements.forEach(
-        article => {
-
-            const text =
-                article.textContent
-                .toLowerCase();
-
-
-            article.style.display =
-                !query ||
-                text.includes(query)
-                    ? ""
-                    : "none";
-
-        }
-    );
+    document.querySelectorAll("#newsList .news, #postFeed .post").forEach(el => {
+        const text = el.textContent.toLowerCase();
+        el.style.display = (!query || text.includes(query)) ? "" : "none";
+    });
 
 }
-
 
 
 /* =====================================================
@@ -3758,51 +1024,15 @@ function openCreateModal(){
 
     editingPostId = null;
 
-
-    document.getElementById(
-        "modalTitle"
-    ).textContent =
-        "Share your take";
-
-
-    document.getElementById(
-        "postType"
-    ).value =
-        "Opinion";
-
-
-    document.getElementById(
-        "postTitle"
-    ).value =
-        "";
-
-
-    document.getElementById(
-        "postEditor"
-    ).innerHTML =
-        "";
-
-
-    document.getElementById(
-        "postImage"
-    ).value =
-        "";
-
-
-    document.querySelector(
-        "#postModal .btn-pink"
-    ).textContent =
-        "Publish Post";
-
-
-    document.getElementById(
-        "postModal"
-    ).classList.add(
-        "show"
-    );
+    document.getElementById("modalTitle").textContent = "Share your take";
+    document.getElementById("postType").value = "Opinion";
+    document.getElementById("postTitle").value = "";
+    document.getElementById("postEditor").innerHTML = "";
+    document.getElementById("postImage").value = "";
+    document.querySelector("#postModal .btn-pink").textContent = "Publish Post";
+    document.getElementById("postModal").classList.add("show");
 
 }
-
 
 
 /* =====================================================
@@ -3811,142 +1041,85 @@ function openCreateModal(){
 
 function savePost(){
 
-    const type =
-        document.getElementById(
-            "postType"
-        ).value;
-
-
-    const title =
-        document.getElementById(
-            "postTitle"
-        ).value
-        .trim();
-
-
-    const body =
-        document.getElementById(
-            "postEditor"
-        ).innerHTML
-        .trim();
-
-
-    const image =
-        document.getElementById(
-            "postImage"
-        ).value
-        .trim();
-
+    const type = document.getElementById("postType").value;
+    const title = document.getElementById("postTitle").value.trim();
+    const body = document.getElementById("postEditor").innerHTML.trim();
+    const image = document.getElementById("postImage").value.trim();
 
     if(!title){
-
-        showToast(
-            "Please add a title."
-        );
-
+        showToast("Please add a title.");
         return;
-
     }
-
 
     if(!body){
-
-        showToast(
-            "Please write something."
-        );
-
+        showToast("Please write something.");
         return;
-
     }
-
 
     if(editingPostId){
 
-        const post =
-            posts.find(
-                p =>
-                    p.id ===
-                    editingPostId
-            );
-
+        const post = posts.find(p => p.id === editingPostId);
 
         if(post){
-
-            post.type =
-                type;
-
-            post.title =
-                title;
-
-            post.body =
-                body;
-
-            post.image =
-                image;
-
-            post.isHTML =
-                true;
-
-            post.time =
-                "Just now";
-
+            post.type = type;
+            post.title = title;
+            post.body = body;
+            post.image = image;
+            post.isHTML = true;
+            post.time = "Just now";
         }
 
-
-        showToast(
-            "Post updated successfully."
-        );
+        showToast("Post updated successfully.");
 
     }
     else{
 
-        const currentUserName =
-            getCurrentUserName();
+        const currentUserName = getCurrentUserName();
 
         posts.unshift({
-
-            id:Date.now(),
-
-            author:currentUserName,
-
-            avatar:getAvatarLetter(currentUserName),
-
-            type:type,
-
-            title:title,
-
-            body:body,
-
-            isHTML:true,
-
-            image:image,
-
-            time:"Just now",
-
-            likes:0,
-
-            comments:[]
-
+            id: Date.now(),
+            author: currentUserName,
+            user_id: getStoredUser().id ?? null,
+            type: type,
+            title: title,
+            body: body,
+            isHTML: true,
+            image: image,
+            time: "Just now",
+            likes: 0,
+            liked: false,
+            comments: []
         });
 
-
-        showToast(
-            "Your post is live on Political Tea!"
-        );
+        showToast("Your post is live on Political Tea!");
 
     }
 
-
     savePosts();
-
     renderPosts();
-
-    closeModal(
-        "postModal"
-    );
+    closeModal("postModal");
 
 }
 
+
+/* =====================================================
+   OWNERSHIP CHECK
+   Only the person who created a post can edit/delete it.
+===================================================== */
+
+function isPostOwner(post){
+
+    const user = getStoredUser();
+
+    // Best check: compare user ids
+    if(post.user_id !== undefined && post.user_id !== null && user.id !== undefined && user.id !== null){
+        return Number(post.user_id) === Number(user.id);
+    }
+
+    // Fallback for older posts: compare author name
+    return post.author === getCurrentUserName() || post.author === "You";
+
+}
 
 
 /* =====================================================
@@ -3955,342 +1128,122 @@ function savePost(){
 
 function renderPosts(){
 
-    const feed =
-        document.getElementById(
-            "postFeed"
-        );
-
-
+    const feed = document.getElementById("postFeed");
     feed.innerHTML = "";
 
-
     if(posts.length === 0){
-
-        feed.innerHTML =
-            `<div class="post">
-
-                <h3>
-                    No community posts yet.
-                </h3>
-
+        feed.innerHTML = `
+            <div class="post">
+                <h3>No community posts yet.</h3>
                 <p class="post-body">
-                    Be the first person to share
-                    what's brewing in
-                    ${escapeHTML(currentState)}.
+                    Be the first person to share what's brewing in ${escapeHTML(currentState)}.
                 </p>
-
             </div>`;
-
         return;
-
     }
 
+    posts.forEach(post => {
 
-    posts.forEach(
-        post => {
+        const article = document.createElement("article");
+        article.className = "post";
 
-            const article =
-                document.createElement(
-                    "article"
-                );
-
-
-            article.className =
-                "post";
-
-
-            article.dataset.search =
-                `${post.author}
-                ${post.title}
-                ${post.body}`
-                .toLowerCase();
-
-
-            const commentsHTML =
-                (post.comments || [])
-                .map(
-                    comment => `
-
-                        <div class="comment">
-
-                            <div class="comment-avatar">
-                                ${escapeHTML(
-                                    getAvatarLetter(comment.name)
-                                )}
-                            </div>
-
-                            <div class="comment-body">
-
-                                <strong>
-                                    ${escapeHTML(
-                                        comment.name
-                                    )}
-                                </strong>
-
-                                <p>
-                                    ${escapeHTML(
-                                        comment.text
-                                    )}
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    `
-                )
-                .join("");
-
-
-            article.innerHTML = `
-
-                <div class="post-top">
-
-                    <div class="author">
-
-                        <div class="author-avatar">
-                            ${escapeHTML(
-                                getAvatarLetter(
-                                    post.author
-                                )
-                            )}
-                        </div>
-
-                        <div class="author-info">
-
-                            <strong>
-                                ${escapeHTML(
-                                    post.author
-                                )}
-                            </strong>
-
-                            <span>
-                                ${escapeHTML(
-                                    post.time
-                                )}
-                                ·
-                                ${escapeHTML(
-                                    currentState
-                                )}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="post-type">
-                        ${escapeHTML(
-                            post.type
-                        )}
-                    </div>
-
+        const commentsHTML = (post.comments || []).map(comment => `
+            <div class="comment">
+                <div class="comment-avatar">${escapeHTML(getAvatarLetter(comment.name))}</div>
+                <div class="comment-body">
+                    <strong>${escapeHTML(comment.name)}</strong>
+                    <p>${escapeHTML(comment.text)}</p>
                 </div>
+            </div>
+        `).join("");
 
+        const isOwner = isPostOwner(post);
 
-                <h3>
-                    ${escapeHTML(
-                        post.title
-                    )}
-                </h3>
+        article.innerHTML = `
 
-
-                <div class="post-body">
-
-                    ${
-                        post.isHTML
-                        ? post.body
-                        : escapeHTML(
-                            post.body
-                        )
-                    }
-
-                </div>
-
-
-                ${
-                    post.image
-                    ?
-                    `
-                    <div class="post-cover">
-
-                        <img
-                            src="${escapeAttribute(
-                                post.image
-                            )}"
-                            alt=""
-                            loading="lazy"
-                        >
-
+            <div class="post-top">
+                <div class="author">
+                    <div class="author-avatar">${escapeHTML(getAvatarLetter(post.author))}</div>
+                    <div class="author-info">
+                        <strong>${escapeHTML(post.author)}</strong>
+                        <span>${escapeHTML(post.time)} · ${escapeHTML(currentState)}</span>
                     </div>
-                    `
-                    :
-                    ""
-                }
-
-
-                <div class="post-actions">
-
-                    <button
-                        class="action-btn"
-                        onclick="likePost(
-                            ${post.id},
-                            this
-                        )"
-                    >
-                        ❤️
-                        <span>
-                            ${post.likes || 0}
-                        </span>
-                    </button>
-
-
-                    <button
-                        class="action-btn"
-                        onclick="toggleComments(
-                            ${post.id}
-                        )"
-                    >
-                        💬
-                        ${post.comments?.length || 0}
-                    </button>
-
-
-                    <button
-                        class="action-btn"
-                        onclick="sharePost(
-                            ${post.id}
-                        )"
-                    >
-                        ↗ Share
-                    </button>
-
-
-                    ${
-                        post.author === "You"
-                        ?
-                        `
-
-                        <button
-                            class="action-btn more-btn"
-                            onclick="editPost(
-                                ${post.id}
-                            )"
-                        >
-                            ✏️ Edit
-                        </button>
-
-                        <button
-                            class="action-btn"
-                            onclick="deletePost(
-                                ${post.id}
-                            )"
-                        >
-                            🗑️
-                        </button>
-
-                        `
-                        :
-                        ""
-                    }
-
                 </div>
+                <div class="post-type">${escapeHTML(post.type)}</div>
+            </div>
 
+            <h3>${escapeHTML(post.title)}</h3>
 
-                <div
-                    class="comments"
-                    id="comments-${post.id}"
-                >
+            <div class="post-body">
+                ${post.isHTML ? post.body : escapeHTML(post.body)}
+            </div>
 
-                    <div>
-                        ${commentsHTML}
-                    </div>
-
-
-                    <div class="comment-input">
-
-                        <input
-                            id="comment-input-${post.id}"
-                            placeholder="Add your take..."
-                            onkeydown="
-                                commentKey(
-                                    event,
-                                    ${post.id}
-                                )
-                            "
-                        >
-
-                        <button
-                            class="btn btn-dark"
-                            onclick="
-                                addComment(
-                                    ${post.id}
-                                )
-                            "
-                        >
-                            Post
-                        </button>
-
-                    </div>
-
+            ${post.image ? `
+                <div class="post-cover">
+                    <img src="${escapeAttribute(post.image)}" alt="" loading="lazy">
                 </div>
+            ` : ""}
 
-            `;
+            <div class="post-actions">
 
+                <button class="action-btn ${post.liked ? "liked" : ""}" onclick="likePost(${post.id}, this)">
+                    ${post.liked ? "❤️" : "🤍"} <span>${post.likes || 0}</span>
+                </button>
 
-            feed.appendChild(
-                article
-            );
+                <button class="action-btn" onclick="toggleComments(${post.id})">
+                    💬 ${post.comments?.length || 0}
+                </button>
 
-        }
-    );
+                <button class="action-btn" onclick="sharePost(${post.id})">↗ Share</button>
+
+                ${isOwner ? `
+                    <button class="action-btn more-btn" onclick="editPost(${post.id})">✏️ Edit</button>
+                    <button class="action-btn" onclick="deletePost(${post.id})">🗑️ Delete</button>
+                ` : ""}
+
+            </div>
+
+            <div class="comments" id="comments-${post.id}">
+                <div>${commentsHTML}</div>
+                <div class="comment-input">
+                    <input id="comment-input-${post.id}" placeholder="Add your take..." onkeydown="commentKey(event, ${post.id})">
+                    <button class="btn btn-dark" onclick="addComment(${post.id})">Post</button>
+                </div>
+            </div>
+
+        `;
+
+        feed.appendChild(article);
+
+    });
 
 }
-
 
 
 /* =====================================================
-   LIKE
+   LIKE / UNLIKE (toggle)
+   1st click = like, 2nd click = unlike, 3rd = like ...
 ===================================================== */
 
-function likePost(
-    id,
-    button
-){
+function likePost(id, button){
 
-    const post =
-        posts.find(
-            p =>
-                p.id === id
-        );
+    const post = posts.find(p => Number(p.id) === Number(id));
+    if(!post) return;
 
-
-    if(!post){
-
-        return;
-
+    if(post.liked){
+        post.liked = false;
+        post.likes = Math.max((post.likes || 1) - 1, 0);
+    }else{
+        post.liked = true;
+        post.likes = (post.likes || 0) + 1;
     }
-
-
-    post.likes =
-        (post.likes || 0) + 1;
-
-
-    button.classList.add(
-        "liked"
-    );
-
 
     savePosts();
 
-
-    button.querySelector(
-        "span"
-    ).textContent =
-        post.likes;
+    button.classList.toggle("liked", post.liked);
+    button.innerHTML = `${post.liked ? "❤️" : "🤍"} <span>${post.likes}</span>`;
 
 }
-
 
 
 /* =====================================================
@@ -4298,188 +1251,100 @@ function likePost(
 ===================================================== */
 
 function toggleComments(id){
-
-    const element =
-        document.getElementById(
-            `comments-${id}`
-        );
-
-
+    const element = document.getElementById(`comments-${id}`);
     if(element){
-
-        element.classList.toggle(
-            "show"
-        );
-
+        element.classList.toggle("show");
     }
-
 }
 
-
-
-function commentKey(
-    event,
-    id
-){
-
-    if(
-        event.key === "Enter"
-    ){
-
+function commentKey(event, id){
+    if(event.key === "Enter"){
         event.preventDefault();
-
         addComment(id);
-
     }
-
 }
-
-
 
 function addComment(id){
 
-    const input =
-        document.getElementById(
-            `comment-input-${id}`
-        );
+    const input = document.getElementById(`comment-input-${id}`);
+    if(!input) return;
 
-
-    if(!input){
-
-        return;
-
-    }
-
-
-    const text =
-        input.value.trim();
-
+    const text = input.value.trim();
 
     if(!text){
-
-        showToast(
-            "Write something first."
-        );
-
+        showToast("Write something first.");
         return;
-
     }
 
-
-    const post =
-        posts.find(
-            p =>
-                p.id === id
-        );
-
-
-    if(!post){
-
-        return;
-
-    }
-
+    const post = posts.find(p => p.id === id);
+    if(!post) return;
 
     if(!post.comments){
-
         post.comments = [];
-
     }
 
-
-    post.comments.push({
-
-        name:"You",
-
-        text:text
-
-    });
-
+    post.comments.push({ name: getCurrentUserName(), text: text });
 
     savePosts();
-
     renderPosts();
 
-
-    setTimeout(
-        () => {
-
-            document
-                .getElementById(
-                    `comments-${id}`
-                )
-                ?.classList.add(
-                    "show"
-                );
-
-        },
-        50
-    );
+    setTimeout(() => {
+        document.getElementById(`comments-${id}`)?.classList.add("show");
+    }, 50);
 
 }
-
 
 
 /* =====================================================
-   DELETE
+   DELETE (owner only)
+   Backend also verifies ownership (403 if not owner).
 ===================================================== */
 
-function deletePost(id){
+async function deletePost(id){
 
-    const post =
-        posts.find(
-            p =>
-                p.id === id
-        );
-
+    const post = posts.find(p => Number(p.id) === Number(id));
 
     if(!post){
-
+        showToast("Post not found.");
         return;
-
     }
 
-
-    if(post.author !== "You"){
-
-        showToast(
-            "You can only delete your own posts."
-        );
-
+    // Only the owner can delete
+    if(!isPostOwner(post)){
+        showToast("You can only delete your own posts.");
         return;
-
     }
 
+    if(!confirm("Delete this post permanently?")) return;
 
-    if(
-        !confirm(
-            "Delete this post permanently?"
-        )
-    ){
+    const token = localStorage.getItem("pt_token");
 
-        return;
+    if(token){
+        try{
+            const response = await fetch(
+                `${API_BASE_URL}/api/posts/${id}`,
+                {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                }
+            );
 
+            if(response.status === 403){
+                showToast("You can only delete your own posts.");
+                return;
+            }
+        }catch(error){
+            console.warn("Backend delete skipped:", error);
+        }
     }
 
-
-    posts =
-        posts.filter(
-            p =>
-                p.id !== id
-        );
-
+    posts = posts.filter(p => Number(p.id) !== Number(id));
 
     savePosts();
-
     renderPosts();
-
-
-    showToast(
-        "Post deleted."
-    );
+    showToast("Post deleted.");
 
 }
-
 
 
 /* =====================================================
@@ -4488,68 +1353,25 @@ function deletePost(id){
 
 function editPost(id){
 
-    const post =
-        posts.find(
-            p =>
-                p.id === id
-        );
+    const post = posts.find(p => p.id === id);
+    if(!post) return;
 
-
-    if(!post){
-
+    if(!isPostOwner(post)){
+        showToast("You can only edit your own posts.");
         return;
-
     }
 
+    editingPostId = id;
 
-    editingPostId =
-        id;
-
-
-    document.getElementById(
-        "modalTitle"
-    ).textContent =
-        "Edit your post";
-
-
-    document.getElementById(
-        "postType"
-    ).value =
-        post.type;
-
-
-    document.getElementById(
-        "postTitle"
-    ).value =
-        post.title;
-
-
-    document.getElementById(
-        "postEditor"
-    ).innerHTML =
-        post.body;
-
-
-    document.getElementById(
-        "postImage"
-    ).value =
-        post.image || "";
-
-
-    document.querySelector(
-        "#postModal .btn-pink"
-    ).textContent =
-        "Save Changes";
-
-
-    document.getElementById(
-        "postModal"
-    ).classList.add(
-        "show"
-    );
+    document.getElementById("modalTitle").textContent = "Edit your post";
+    document.getElementById("postType").value = post.type;
+    document.getElementById("postTitle").value = post.title;
+    document.getElementById("postEditor").innerHTML = post.body;
+    document.getElementById("postImage").value = post.image || "";
+    document.querySelector("#postModal .btn-pink").textContent = "Save Changes";
+    document.getElementById("postModal").classList.add("show");
 
 }
-
 
 
 /* =====================================================
@@ -4557,38 +1379,18 @@ function editPost(id){
 ===================================================== */
 
 function savePosts(){
-
-    localStorage.setItem(
-        "pt_posts",
-        JSON.stringify(posts)
-    );
-
+    localStorage.setItem("pt_posts", JSON.stringify(posts));
 }
-
 
 
 /* =====================================================
    EDITOR
 ===================================================== */
 
-function formatText(
-    command,
-    value = null
-){
-
-    document.execCommand(
-        command,
-        false,
-        value
-    );
-
-
-    document.getElementById(
-        "postEditor"
-    ).focus();
-
+function formatText(command, value = null){
+    document.execCommand(command, false, value);
+    document.getElementById("postEditor").focus();
 }
-
 
 
 /* =====================================================
@@ -4597,182 +1399,86 @@ function formatText(
 
 async function sharePost(id){
 
-    const post =
-        posts.find(
-            p =>
-                p.id === id
-        );
-
-
-    if(!post){
-
-        return;
-
-    }
-
+    const post = posts.find(p => p.id === id);
+    if(!post) return;
 
     const shareData = {
-
-        title:post.title,
-
-        text:
-            `${post.title} — Political Tea`
-
+        title: post.title,
+        text: `${post.title} — Political Tea`
     };
 
-
-    if(
-        navigator.share
-    ){
-
+    if(navigator.share){
         try{
-
-            await navigator.share(
-                shareData
-            );
-
-        }
-        catch(error){}
-
+            await navigator.share(shareData);
+        }catch(error){}
     }
     else{
-
         try{
-
-            await navigator.clipboard.writeText(
-                post.title
-            );
-
-
-            showToast(
-                "Post title copied."
-            );
-
+            await navigator.clipboard.writeText(post.title);
+            showToast("Post title copied.");
+        }catch(error){
+            showToast("Unable to copy.");
         }
-        catch(error){
-
-            showToast(
-                "Unable to copy."
-            );
-
-        }
-
     }
 
 }
-
 
 
 /* =====================================================
    USER AVATAR
 ===================================================== */
 
-/*
-   Always use the first letter of the logged-in user's
-   name for the profile avatar.
-
-   Example:
-   Prem Pandey -> P
-   Rahul -> R
-*/
 function getAvatarLetter(name){
 
     if(!name || typeof name !== "string"){
         return "?";
     }
 
-    const cleanName =
-        name.trim();
+    const cleanName = name.trim();
 
     if(!cleanName){
         return "?";
     }
 
-    return cleanName
-        .charAt(0)
-        .toUpperCase();
+    return cleanName.charAt(0).toUpperCase();
 
 }
-
 
 function getStoredUser(){
-
     try{
-
-        return JSON.parse(
-            localStorage.getItem("pt_user") || "{}"
-        );
-
+        return JSON.parse(localStorage.getItem("pt_user") || "{}");
     }
     catch(error){
-
         return {};
-
     }
-
 }
-
 
 function updateUserAvatar(){
 
-    const avatar =
-        document.getElementById("userAvatar");
+    const avatar = document.getElementById("userAvatar");
+    if(!avatar) return;
 
-    if(!avatar){
-        return;
-    }
+    const user = getStoredUser();
+    const name = user.name || user.full_name || user.username || "";
 
-    const user =
-        getStoredUser();
-
-    const name =
-        user.name ||
-        user.full_name ||
-        user.username ||
-        "";
-
-    avatar.textContent =
-        getAvatarLetter(name);
+    avatar.textContent = getAvatarLetter(name);
 
     if(name){
-
-        avatar.title =
-            name;
-
-        avatar.setAttribute(
-            "aria-label",
-            `${name}'s profile`
-        );
-
+        avatar.title = name;
+        avatar.setAttribute("aria-label", `${name}'s profile`);
     }
     else{
-
-        avatar.title =
-            "Login";
-
-        avatar.setAttribute(
-            "aria-label",
-            "Login"
-        );
-
+        avatar.title = "Login";
+        avatar.setAttribute("aria-label", "Login");
     }
 
 }
 
-
 function getCurrentUserName(){
-
-    const user =
-        getStoredUser();
-
-    return (
-        user.name ||
-        user.full_name ||
-        user.username ||
-        "You"
-    ).trim();
-
+    const user = getStoredUser();
+    return (user.name || user.full_name || user.username || "You").trim();
 }
+
 
 /* =====================================================
    PROFILE
@@ -4783,351 +1489,129 @@ function openProfileModal(){
     const user = getStoredUser();
 
     if(!user || !user.name){
-
         showToast("Unable to load profile.");
-
         return;
     }
 
     renderProfile(user);
 
-    document.getElementById(
-        "profileView"
-    ).style.display = "block";
-
-    document.getElementById(
-        "profileEditView"
-    ).style.display = "none";
-
-    document.getElementById(
-        "profileModal"
-    ).classList.add("show");
+    document.getElementById("profileView").style.display = "block";
+    document.getElementById("profileEditView").style.display = "none";
+    document.getElementById("profileModal").classList.add("show");
 
 }
-
 
 function renderProfile(user){
 
-    const name =
-        user.name ||
-        user.full_name ||
-        user.username ||
-        "User";
+    const name = user.name || user.full_name || user.username || "User";
+    const email = user.email || "No email";
+    const state = STATE_MAP[user.state_id] || "Not selected";
 
-    const email =
-        user.email ||
-        "No email";
-
-    const stateId =
-        user.state_id;
-
-    const state =
-        STATE_MAP[stateId] ||
-        "Not selected";
-
-
-    document.getElementById(
-        "profileName"
-    ).textContent = name;
-
-
-    document.getElementById(
-        "profileEmail"
-    ).textContent = email;
-
-
-    document.getElementById(
-        "profileDisplayName"
-    ).textContent = name;
-
-
-    document.getElementById(
-        "profileDisplayEmail"
-    ).textContent = email;
-
-
-    document.getElementById(
-        "profileDisplayState"
-    ).textContent = state;
-
-
-    document.getElementById(
-        "profileLargeAvatar"
-    ).textContent =
-        getAvatarLetter(name);
+    document.getElementById("profileName").textContent = name;
+    document.getElementById("profileEmail").textContent = email;
+    document.getElementById("profileDisplayName").textContent = name;
+    document.getElementById("profileDisplayEmail").textContent = email;
+    document.getElementById("profileDisplayState").textContent = state;
+    document.getElementById("profileLargeAvatar").textContent = getAvatarLetter(name);
 
 }
-
 
 function openEditProfile(){
 
     const user = getStoredUser();
 
-    document.getElementById(
-        "editProfileName"
-    ).value =
-        user.name ||
-        user.full_name ||
-        user.username ||
-        "";
+    document.getElementById("editProfileName").value = user.name || user.full_name || user.username || "";
+    document.getElementById("editProfileEmail").value = user.email || "";
+    document.getElementById("editProfileState").value = String(user.state_id || currentStateId || 1);
 
-
-    document.getElementById(
-        "editProfileEmail"
-    ).value =
-        user.email ||
-        "";
-
-
-    document.getElementById(
-        "editProfileState"
-    ).value =
-        String(
-            user.state_id ||
-            currentStateId ||
-            1
-        );
-
-
-    document.getElementById(
-        "profileView"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "profileEditView"
-    ).style.display = "block";
+    document.getElementById("profileView").style.display = "none";
+    document.getElementById("profileEditView").style.display = "block";
 
 }
-
 
 function cancelEditProfile(){
-
-    document.getElementById(
-        "profileView"
-    ).style.display = "block";
-
-
-    document.getElementById(
-        "profileEditView"
-    ).style.display = "none";
-
+    document.getElementById("profileView").style.display = "block";
+    document.getElementById("profileEditView").style.display = "none";
 }
-
 
 async function saveProfile(){
 
-    const name =
-        document.getElementById(
-            "editProfileName"
-        ).value.trim();
-
-
-    const email =
-        document.getElementById(
-            "editProfileEmail"
-        ).value.trim();
-
-
-    const stateId =
-        parseInt(
-            document.getElementById(
-                "editProfileState"
-            ).value
-        );
-
+    const name = document.getElementById("editProfileName").value.trim();
+    const email = document.getElementById("editProfileEmail").value.trim();
+    const stateId = parseInt(document.getElementById("editProfileState").value);
 
     if(!name){
-
-        showToast(
-            "Please enter your name."
-        );
-
+        showToast("Please enter your name.");
         return;
-
     }
-
 
     if(!email){
-
-        showToast(
-            "Please enter your email."
-        );
-
+        showToast("Please enter your email.");
         return;
-
     }
 
-
-    const token =
-        localStorage.getItem(
-            "pt_token"
-        );
-
+    const token = localStorage.getItem("pt_token");
 
     if(!token){
-
-        window.location.href =
-            "login.html";
-
+        window.location.href = "login.html";
         return;
-
     }
-
 
     try{
 
-        const response =
-            await fetch(
-                `${API_BASE_URL}/api/auth/me`,
-                {
-                    method:"PUT",
-
-                    headers:{
-                        "Content-Type":
-                            "application/json",
-
-                        "Authorization":
-                            `Bearer ${token}`
-                    },
-
-                    body:JSON.stringify({
-
-                        name:name,
-
-                        email:email,
-
-                        state_id:stateId
-
-                    })
-                }
-            );
-
+        const response = await fetch(
+            `${API_BASE_URL}/api/auth/me`,
+            {
+                method:"PUT",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":`Bearer ${token}`
+                },
+                body:JSON.stringify({ name:name, email:email, state_id:stateId })
+            }
+        );
 
         if(!response.ok){
-
-            const errorData =
-                await response.json()
-                .catch(
-                    () => ({})
-                );
-
-
-            throw new Error(
-                errorData.detail ||
-                `Server returned ${response.status}`
-            );
-
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `Server returned ${response.status}`);
         }
 
+        const updatedUser = await response.json();
 
-        const updatedUser =
-            await response.json();
+        localStorage.setItem("pt_user", JSON.stringify(updatedUser));
 
-
-        localStorage.setItem(
-            "pt_user",
-            JSON.stringify(
-                updatedUser
-            )
-        );
-
-
-        /*
-        Update application state
-        */
-
-        currentStateId =
-            updatedUser.state_id ||
-            stateId;
-
-
-        localStorage.setItem(
-            "pt_state_id",
-            String(currentStateId)
-        );
-
+        currentStateId = updatedUser.state_id || stateId;
+        localStorage.setItem("pt_state_id", String(currentStateId));
 
         updateStateUI();
-
         updateUserAvatar();
 
-
-        const profileText =
-            document.getElementById(
-                "profileText"
-            );
-
-
+        const profileText = document.getElementById("profileText");
         if(profileText){
-
-            profileText.textContent =
-                updatedUser.name ||
-                name;
-
+            profileText.textContent = updatedUser.name || name;
         }
 
+        renderProfile(updatedUser);
 
-        renderProfile(
-            updatedUser
-        );
+        document.getElementById("profileView").style.display = "block";
+        document.getElementById("profileEditView").style.display = "none";
 
-
-        document.getElementById(
-            "profileView"
-        ).style.display = "block";
-
-
-        document.getElementById(
-            "profileEditView"
-        ).style.display = "none";
-
-
-        showToast(
-            "Profile updated successfully!"
-        );
-
-
-        /*
-        Reload state-specific content
-        */
+        showToast("Profile updated successfully!");
 
         await loadStateContent();
 
-
     }
     catch(error){
-
-        console.error(
-            "Profile update error:",
-            error
-        );
-
-
-        showToast(
-            error.message ||
-            "Unable to update profile."
-        );
-
+        console.error("Profile update error:", error);
+        showToast(error.message || "Unable to update profile.");
     }
 
 }
+
 
 /* =====================================================
    AUTH
 ===================================================== */
-
-/*
-   This function prevents the old:
-
-   handleAuthClick is not defined
-
-   error.
-
-   If your login system already has its own
-   implementation, replace the inside of this
-   function with your existing login redirect.
-*/
 
 function handleAuthClick(){
 
@@ -5142,7 +1626,6 @@ function handleAuthClick(){
 }
 
 
-
 /* =====================================================
    LOGOUT — back to the Tapri
 ===================================================== */
@@ -5155,22 +1638,13 @@ function logout(){
 
     updateUserAvatar();
 
-    showToast(
-        "Logged out. See you back at the tapri!"
-    );
+    showToast("Logged out. See you back at the tapri!");
 
-    setTimeout(
-        () => {
-
-            window.location.href =
-                "tapri.html";
-
-        },
-        400
-    );
+    setTimeout(() => {
+        window.location.href = "tapri.html";
+    }, 400);
 
 }
-
 
 
 /* =====================================================
@@ -5178,128 +1652,51 @@ function logout(){
 ===================================================== */
 
 function scrollToSection(id){
-
-    document
-        .getElementById(id)
-        ?.scrollIntoView({
-            behavior:"smooth"
-        });
-
+    document.getElementById(id)?.scrollIntoView({ behavior:"smooth" });
 }
-
-
 
 function closeModal(id){
-
-    document
-        .getElementById(id)
-        ?.classList.remove(
-            "show"
-        );
-
+    document.getElementById(id)?.classList.remove("show");
 }
-
-
 
 function showToast(message){
 
-    const toast =
-        document.getElementById(
-            "toast"
-        );
+    const toast = document.getElementById("toast");
 
+    toast.textContent = message;
+    toast.classList.add("show");
 
-    toast.textContent =
-        message;
-
-
-    toast.classList.add(
-        "show"
-    );
-
-
-    setTimeout(
-        () => {
-
-            toast.classList.remove(
-                "show"
-            );
-
-        },
-        2500
-    );
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2500);
 
 }
-
-
 
 function escapeHTML(value){
-
     return String(value)
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
-
-
 
 function escapeAttribute(value){
-
     return String(value)
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
-
 
 
 /* =====================================================
    CLOSE MODAL ON BACKDROP
 ===================================================== */
 
-document.addEventListener(
-    "click",
-    event => {
-
-        if(
-            event.target.classList.contains(
-                "modal"
-            )
-        ){
-
-            event.target.classList.remove(
-                "show"
-            );
-
-        }
-
+document.addEventListener("click", event => {
+    if(event.target.classList.contains("modal")){
+        event.target.classList.remove("show");
     }
-);
-
+});
 
 
 /* =====================================================
@@ -5308,560 +1705,231 @@ document.addEventListener(
 
 renderPosts();
 
-/* =========================================================
+
+/* =====================================================
    TEA CHATBOT
-   ========================================================= */
+===================================================== */
 
 let teaConversation = [];
-
 let teaBusy = false;
 
-
-/* ---------------------------------------------------------
-   Toggle chatbot
---------------------------------------------------------- */
-
-function toggleTeaChat() {
+function toggleTeaChat(){
 
     const chat = document.getElementById("teaChat");
+    if(!chat) return;
 
-    if (!chat) return;
-
-    const isOpen = chat.classList.contains("show");
-
-    if (isOpen) {
-
+    if(chat.classList.contains("show")){
         chat.classList.remove("show");
-
         return;
     }
-
 
     const token = localStorage.getItem("pt_token");
 
-    if (!token) {
-
-        showToast(
-            "Please login to chat with Tea."
-        );
-
+    if(!token){
+        showToast("Please login to chat with Tea.");
         window.location.href = "login.html";
-
         return;
     }
 
-
     chat.classList.add("show");
-
     updateTeaState();
 
     setTimeout(() => {
-
-        document.getElementById(
-            "teaInput"
-        )?.focus();
-
+        document.getElementById("teaInput")?.focus();
     }, 100);
+
 }
 
-
-/* ---------------------------------------------------------
-   Update state
---------------------------------------------------------- */
-
-function updateTeaState() {
+function updateTeaState(){
 
     const user = getStoredUser();
+    if(!user) return;
 
-    if (!user) return;
+    const stateId = Number(user.state_id || currentStateId);
+    const stateName = STATE_MAP[stateId] || currentState || "your state";
 
-    const stateId = Number(
-        user.state_id ||
-        currentStateId
-    );
+    const subtitle = document.getElementById("teaSubtitle");
 
-    const stateName =
-        STATE_MAP[stateId] ||
-        currentState ||
-        "your state";
-
-
-    const subtitle =
-        document.getElementById(
-            "teaSubtitle"
-        );
-
-    if (subtitle) {
-
-        subtitle.textContent =
-            `Brewing news from ${stateName}`;
+    if(subtitle){
+        subtitle.textContent = `Brewing news from ${stateName}`;
     }
+
 }
 
+function addTeaMessage(role, message){
 
-/* ---------------------------------------------------------
-   Add message
---------------------------------------------------------- */
+    const container = document.getElementById("teaMessages");
+    if(!container) return;
 
-function addTeaMessage(
-    role,
-    message
-) {
+    const wrapper = document.createElement("div");
+    wrapper.className = `tea-message ${role}`;
 
-    const container =
-        document.getElementById(
-            "teaMessages"
-        );
+    const bubble = document.createElement("div");
+    bubble.className = "tea-bubble";
+    bubble.textContent = message;
 
-    if (!container) return;
+    wrapper.appendChild(bubble);
+    container.appendChild(wrapper);
 
+    container.scrollTop = container.scrollHeight;
 
-    const wrapper =
-        document.createElement("div");
-
-    wrapper.className =
-        `tea-message ${role}`;
-
-
-    const bubble =
-        document.createElement("div");
-
-    bubble.className =
-        "tea-bubble";
-
-
-    bubble.textContent =
-        message;
-
-
-    wrapper.appendChild(
-        bubble
-    );
-
-
-    container.appendChild(
-        wrapper
-    );
-
-
-    container.scrollTop =
-        container.scrollHeight;
 }
 
+async function sendTeaMessage(){
 
-/* ---------------------------------------------------------
-   Send message
---------------------------------------------------------- */
+    if(teaBusy) return;
 
-async function sendTeaMessage() {
+    const input = document.getElementById("teaInput");
+    if(!input) return;
 
-    if (teaBusy) return;
+    const message = input.value.trim();
+    if(!message) return;
 
+    const token = localStorage.getItem("pt_token");
 
-    const input =
-        document.getElementById(
-            "teaInput"
-        );
-
-    if (!input) return;
-
-
-    const message =
-        input.value.trim();
-
-
-    if (!message) return;
-
-
-    const token =
-        localStorage.getItem(
-            "pt_token"
-        );
-
-
-    if (!token) {
-
-        showToast(
-            "Please login to use Tea."
-        );
-
+    if(!token){
+        showToast("Please login to use Tea.");
         return;
     }
 
-
-    /* Show user message */
-
-    addTeaMessage(
-        "user",
-        message
-    );
-
-
+    addTeaMessage("user", message);
     input.value = "";
 
+    teaConversation.push({ role:"user", content:message });
 
-    /* Save conversation */
-
-    teaConversation.push({
-
-        role: "user",
-
-        content: message
-
-    });
-
-
-    /* Limit conversation */
-
-    if (teaConversation.length > 10) {
-
-        teaConversation =
-            teaConversation.slice(-10);
+    if(teaConversation.length > 10){
+        teaConversation = teaConversation.slice(-10);
     }
-
 
     teaBusy = true;
 
+    const sendButton = document.getElementById("teaSend");
+    const typing = document.getElementById("teaTyping");
 
-    const sendButton =
-        document.getElementById(
-            "teaSend"
+    if(sendButton) sendButton.disabled = true;
+    if(typing) typing.classList.add("show");
+
+    try{
+
+        const response = await fetch(
+            `${API_BASE_URL}/api/tea/chat`,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":`Bearer ${token}`
+                },
+                body:JSON.stringify({
+                    message: message,
+                    conversation: teaConversation.slice(-10, -1)
+                })
+            }
         );
 
-    const typing =
-        document.getElementById(
-            "teaTyping"
-        );
+        const data = await response.json();
 
-
-    if (sendButton) {
-
-        sendButton.disabled = true;
-    }
-
-
-    if (typing) {
-
-        typing.classList.add(
-            "show"
-        );
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_BASE_URL}/api/tea/chat`,
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        "Authorization":
-                            `Bearer ${token}`
-
-                    },
-
-                    body: JSON.stringify({
-
-                        message:
-                            message,
-
-                        conversation:
-                            teaConversation.slice(
-                                -10,
-                                -1
-                            )
-
-                    })
-
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                "Tea is currently unavailable."
-            );
+        if(!response.ok){
+            throw new Error(data.detail || "Tea is currently unavailable.");
         }
 
+        const answer = data.answer || "☕ I couldn't find enough information right now.";
 
-        const answer =
-            data.answer ||
-            "☕ I couldn't find enough information right now.";
+        addTeaMessage("assistant", answer);
 
+        teaConversation.push({ role:"assistant", content:answer });
 
-        addTeaMessage(
-            "assistant",
-            answer
-        );
-
-
-        teaConversation.push({
-
-            role: "assistant",
-
-            content: answer
-
-        });
-
-
-        if (teaConversation.length > 10) {
-
-            teaConversation =
-                teaConversation.slice(-10);
+        if(teaConversation.length > 10){
+            teaConversation = teaConversation.slice(-10);
         }
 
+    }catch(error){
 
-    } catch (error) {
-
-        console.error(
-            "Tea error:",
-            error
-        );
-
+        console.error("Tea error:", error);
 
         addTeaMessage(
             "assistant",
             `☕ Sorry, I couldn't brew an answer right now.\n\n${error.message}`
         );
 
-    } finally {
+    }finally{
 
         teaBusy = false;
 
-
-        if (sendButton) {
-
-            sendButton.disabled =
-                false;
-        }
-
-
-        if (typing) {
-
-            typing.classList.remove(
-                "show"
-            );
-        }
-
+        if(sendButton) sendButton.disabled = false;
+        if(typing) typing.classList.remove("show");
 
         input.focus();
+
     }
+
 }
 
+function askTeaSuggestion(question){
 
-/* ---------------------------------------------------------
-   Suggestion
---------------------------------------------------------- */
+    const input = document.getElementById("teaInput");
+    if(!input) return;
 
-function askTeaSuggestion(
-    question
-) {
-
-    const input =
-        document.getElementById(
-            "teaInput"
-        );
-
-
-    if (!input) return;
-
-
-    input.value =
-        question;
-
-
+    input.value = question;
     sendTeaMessage();
+
 }
 
+document.addEventListener("keydown", function(event){
 
-/* ---------------------------------------------------------
-   Enter key
---------------------------------------------------------- */
+    const input = document.getElementById("teaInput");
+    if(!input) return;
 
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        const input =
-            document.getElementById(
-                "teaInput"
-            );
-
-
-        if (!input) return;
-
-
-        if (
-            document.activeElement === input &&
-            event.key === "Enter"
-        ) {
-
-            event.preventDefault();
-
-            sendTeaMessage();
-        }
-
+    if(document.activeElement === input && event.key === "Enter"){
+        event.preventDefault();
+        sendTeaMessage();
     }
-);
+
+});
 
 </script>
-<!-- =========================================================
-     TEA CHATBOT
-     ========================================================= -->
 
-<button
-    class="tea-fab"
-    id="teaFab"
-    onclick="toggleTeaChat()"
-    aria-label="Ask Tea"
->
+<!-- TEA CHATBOT -->
+
+<button class="tea-fab" id="teaFab" onclick="toggleTeaChat()" aria-label="Ask Tea">
     ☕
     <span>AI</span>
 </button>
 
-
-<div
-    class="tea-chat"
-    id="teaChat"
->
-
-    <!-- Header -->
+<div class="tea-chat" id="teaChat">
 
     <div class="tea-header">
-
         <div class="tea-header-left">
-
-            <div class="tea-icon">
-                ☕
-            </div>
-
+            <div class="tea-icon">☕</div>
             <div>
-
-                <div class="tea-title">
-                    Ask Tea
-                </div>
-
-                <div
-                    class="tea-subtitle"
-                    id="teaSubtitle"
-                >
-                    Your local news assistant
-                </div>
-
+                <div class="tea-title">Ask Tea</div>
+                <div class="tea-subtitle" id="teaSubtitle">Your local news assistant</div>
             </div>
-
         </div>
-
-        <button
-            class="tea-close"
-            onclick="toggleTeaChat()"
-        >
-            ✕
-        </button>
-
+        <button class="tea-close" onclick="toggleTeaChat()">✕</button>
     </div>
 
-
-    <!-- Messages -->
-
-    <div
-        class="tea-messages"
-        id="teaMessages"
-    >
-
+    <div class="tea-messages" id="teaMessages">
         <div class="tea-message assistant">
-
-            <div class="tea-bubble">
-                ☕ Hey! I’m Tea.
+            <div class="tea-bubble">☕ Hey! I’m Tea.
 Let’s see what’s brewing 👀
-Ask me about local news, political updates, public issues, or what people are talking about in your state.
-            </div>
-
+Ask me about local news, political updates, public issues, or what people are talking about in your state.</div>
         </div>
-
     </div>
 
-
-    <!-- Typing -->
-
-    <div
-        class="tea-typing"
-        id="teaTyping"
-    >
-        ☕ Tea is brewing an answer...
-    </div>
-
-
-    <!-- Suggestions -->
+    <div class="tea-typing" id="teaTyping">☕ Tea is brewing an answer...</div>
 
     <div class="tea-suggestions">
-
-        <button
-            class="tea-suggestion"
-            onclick="askTeaSuggestion(
-                'What is happening in my state today?'
-            )"
-        >
-            📰 What's happening today?
-        </button>
-
-        <button
-            class="tea-suggestion"
-            onclick="askTeaSuggestion(
-                'What are the latest political updates in my state?'
-            )"
-        >
-            🗳️ Political updates
-        </button>
-
-        <button
-            class="tea-suggestion"
-            onclick="askTeaSuggestion(
-                'What are the major local issues being discussed right now?'
-            )"
-        >
-            🔥 Local issues
-        </button>
-
+        <button class="tea-suggestion" onclick="askTeaSuggestion('What is happening in my state today?')">📰 What's happening today?</button>
+        <button class="tea-suggestion" onclick="askTeaSuggestion('What are the latest political updates in my state?')">🗳️ Political updates</button>
+        <button class="tea-suggestion" onclick="askTeaSuggestion('What are the major local issues being discussed right now?')">🔥 Local issues</button>
     </div>
 
-
-    <!-- Input -->
-
     <div class="tea-input-area">
-
-        <input
-            type="text"
-            id="teaInput"
-            class="tea-input"
-            placeholder="Ask Tea anything..."
-            maxlength="4000"
-            autocomplete="off"
-        >
-
-        <button
-            class="tea-send"
-            id="teaSend"
-            onclick="sendTeaMessage()"
-        >
-            ➤
-        </button>
-
+        <input type="text" id="teaInput" class="tea-input" placeholder="Ask Tea anything..." maxlength="4000" autocomplete="off">
+        <button class="tea-send" id="teaSend" onclick="sendTeaMessage()">➤</button>
     </div>
 
 </div>
+
 </body>
 </html>
