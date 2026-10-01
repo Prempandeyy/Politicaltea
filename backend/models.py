@@ -1,4 +1,13 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    ForeignKey,
+    DateTime,
+    UniqueConstraint,
+)
+
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -13,9 +22,16 @@ class User(Base):
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    name = Column(String, nullable=False)
+    name = Column(
+        String,
+        nullable=False
+    )
 
     email = Column(
         String,
@@ -24,7 +40,10 @@ class User(Base):
         nullable=False
     )
 
-    password = Column(String, nullable=False)
+    password = Column(
+        String,
+        nullable=False
+    )
 
     state_id = Column(
         Integer,
@@ -37,6 +56,11 @@ class User(Base):
         back_populates="users"
     )
 
+    posts = relationship(
+        "Post",
+        back_populates="user"
+    )
+
 
 # =========================================
 # USER CONTENT HISTORY
@@ -46,7 +70,11 @@ class UserContentSnapshot(Base):
 
     __tablename__ = "user_content_snapshots"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     user_id = Column(
         Integer,
@@ -61,9 +89,15 @@ class UserContentSnapshot(Base):
         nullable=False
     )
 
-    kind = Column(String, nullable=False)
+    kind = Column(
+        String,
+        nullable=False
+    )
 
-    payload = Column(Text, nullable=False)
+    payload = Column(
+        Text,
+        nullable=False
+    )
 
     captured_at = Column(
         DateTime,
@@ -73,11 +107,19 @@ class UserContentSnapshot(Base):
     )
 
 
+# =========================================
+# RECENT CONTENT CACHE
+# =========================================
+
 class RecentContentCache(Base):
 
     __tablename__ = "recent_content_cache"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     state_id = Column(
         Integer,
@@ -86,7 +128,10 @@ class RecentContentCache(Base):
         unique=True
     )
 
-    payload = Column(Text, nullable=False)
+    payload = Column(
+        Text,
+        nullable=False
+    )
 
     fetched_at = Column(
         DateTime,
@@ -197,6 +242,14 @@ class Post(Base):
         index=True
     )
 
+    # User who created the post
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
     author = Column(
         String,
         nullable=False
@@ -229,23 +282,83 @@ class Post(Base):
 
     likes = Column(
         Integer,
-        default=0
+        default=0,
+        nullable=False
+    )
+
+    dislikes = Column(
+        Integer,
+        default=0,
+        nullable=False
     )
 
     state_id = Column(
         Integer,
         ForeignKey("states.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     created_at = Column(
         DateTime,
-        default=datetime.utcnow
+        default=datetime.utcnow,
+        nullable=False,
+        index=True
+    )
+
+    user = relationship(
+        "User",
+        back_populates="posts"
     )
 
     state = relationship(
         "State",
         back_populates="posts"
+    )
+
+
+# =========================================
+# POST REACTION
+# =========================================
+
+class PostReaction(Base):
+
+    __tablename__ = "post_reactions"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    post_id = Column(
+        Integer,
+        ForeignKey("posts.id"),
+        nullable=False,
+        index=True
+    )
+
+    reaction = Column(
+        String(10),
+        nullable=False
+    )
+
+    # VERY IMPORTANT:
+    # One user can have only one reaction
+    # on one post.
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "post_id",
+            name="unique_user_post_reaction"
+        ),
     )
 
 
