@@ -16,7 +16,7 @@ router = APIRouter(
 
 
 # =========================================================
-# REQUIRE USER STATE
+# HELPERS
 # =========================================================
 
 def require_user_state(current_user: User) -> int:
@@ -31,14 +31,44 @@ def require_user_state(current_user: User) -> int:
     return current_user.state_id
 
 
+def post_to_dict(post: Post, my_reaction=None) -> dict:
+
+    return {
+        "id": post.id,
+        "user_id": post.user_id,
+        "author": post.author,
+        "avatar": post.avatar,
+        "type": post.type,
+        "title": post.title,
+        "body": post.body,
+        "image": post.image,
+        "likes": post.likes or 0,
+        "dislikes": post.dislikes or 0,
+        "state_id": post.state_id,
+        "created_at": post.created_at,
+        "my_reaction": my_reaction
+    }
+
+
+def get_user_reaction(db: Session, user_id: int, post_id: int):
+
+    reaction = (
+        db.query(PostReaction)
+        .filter(
+            PostReaction.user_id == user_id,
+            PostReaction.post_id == post_id
+        )
+        .first()
+    )
+
+    return reaction.reaction if reaction else None
+
+
 # =========================================================
-# GET LAST 24 HOURS POSTS
+# GET LAST 24 HOURS POSTS (ONLY USER'S OWN STATE)
 # =========================================================
 
-@router.get(
-    "",
-    response_model=list[PostResponse]
-)
+@router.get("", response_model=list[PostResponse])
 def get_posts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -54,46 +84,17 @@ def get_posts(
             Post.state_id == state_id,
             Post.created_at >= since
         )
-        .order_by(
-            Post.created_at.desc()
-        )
+        .order_by(Post.created_at.desc())
         .all()
     )
 
-    result = []
-
-    for post in posts:
-
-        reaction = (
-            db.query(PostReaction)
-            .filter(
-                PostReaction.user_id == current_user.id,
-                PostReaction.post_id == post.id
-            )
-            .first()
+    return [
+        post_to_dict(
+            post,
+            get_user_reaction(db, current_user.id, post.id)
         )
-
-        result.append({
-            "id": post.id,
-            "user_id": post.user_id,
-            "author": post.author,
-            "avatar": post.avatar,
-            "type": post.type,
-            "title": post.title,
-            "body": post.body,
-            "image": post.image,
-            "likes": post.likes or 0,
-            "dislikes": post.dislikes or 0,
-            "state_id": post.state_id,
-            "created_at": post.created_at,
-            "my_reaction": (
-                reaction.reaction
-                if reaction
-                else None
-            )
-        })
-
-    return result
+        for post in posts
+    ]
 
 
 # =========================================================
@@ -113,8 +114,7 @@ def create_post(
 
     state_id = require_user_state(current_user)
 
-    # Make sure name exists
-    author_name = current_user.name.strip()
+    author_name = (current_user.name or "").strip()
 
     if not author_name:
 
@@ -125,8 +125,7 @@ def create_post(
 
     new_post = Post(
 
-        # IMPORTANT:
-        # Store the actual user who created the post
+        # Actual user who created the post
         user_id=current_user.id,
 
         author=author_name,
@@ -141,12 +140,10 @@ def create_post(
 
         image=post.image,
 
-        # New post starts with zero reactions
         likes=0,
 
         dislikes=0,
 
-        # VERY IMPORTANT:
         # Post belongs to logged-in user's state
         state_id=state_id,
 
@@ -159,30 +156,65 @@ def create_post(
 
     db.refresh(new_post)
 
-    return {
-        "id": new_post.id,
-        "user_id": new_post.user_id,
-        "author": new_post.author,
-        "avatar": new_post.avatar,
-        "type": new_post.type,
-        "title": new_post.title,
-        "body": new_post.body,
-        "image": new_post.image,
-        "likes": 0,
-        "dislikes": 0,
-        "state_id": new_post.state_id,
-        "created_at": new_post.created_at,
-        "my_reaction": None
-    }
+    return post_to_dict(new_post, None)
 
 
 # =========================================================
-# LIKE / DISLIKE
+# EDIT OWN POST
 # =========================================================
 
-@router.post(
-    "/{post_id}/reaction"
+@router.put(
+    "/{post_id}",
+    response_model=PostResponse
 )
+def update_post(
+    post_id: int,
+    data: PostCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    post = (
+        db.query(Post)
+        .filter(Post.id == post_id)
+        .first()
+    )
+
+    if not post:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Post not found"
+        )
+
+    # Only post owner can edit
+    if post.user_id != current_user.id:
+
+        raise HTTPException(
+            status_code=403,
+            detail="You can edit only your own post"
+        )
+
+    post.type = data.type
+    post.title = data.title
+    post.body = data.body
+    post.image = data.image
+
+    db.commit()
+
+    db.refresh(post)
+
+    return post_to_dict(
+        post,
+        get_user_reaction(db, current_user.id, post.id)
+    )
+
+
+# =========================================================
+# LIKE / UNLIKE (TOGGLE)
+# =========================================================
+
+@router.post("/{post_id}/reaction")
 def react_to_post(
     post_id: int,
     reaction_data: dict,
@@ -225,7 +257,7 @@ def react_to_post(
         )
 
     # -----------------------------------------------------
-    # STATE PROTECTION
+    # State protection
     # -----------------------------------------------------
 
     if post.state_id != state_id:
@@ -236,7 +268,7 @@ def react_to_post(
         )
 
     # -----------------------------------------------------
-    # Check existing reaction
+    # Existing reaction
     # -----------------------------------------------------
 
     existing_reaction = (
@@ -249,52 +281,43 @@ def react_to_post(
     )
 
     # =====================================================
-    # NO PREVIOUS REACTION
+    # NO PREVIOUS REACTION -> ADD
     # =====================================================
 
     if existing_reaction is None:
 
-        new_reaction = PostReaction(
-            user_id=current_user.id,
-            post_id=post.id,
-            reaction=reaction_type
+        db.add(
+            PostReaction(
+                user_id=current_user.id,
+                post_id=post.id,
+                reaction=reaction_type
+            )
         )
 
-        db.add(new_reaction)
-
         if reaction_type == "like":
-
             post.likes = (post.likes or 0) + 1
-
         else:
-
             post.dislikes = (post.dislikes or 0) + 1
 
+        final_reaction = reaction_type
+
     # =====================================================
-    # SAME REACTION AGAIN
+    # SAME REACTION AGAIN -> REMOVE (like -> unlike)
     # =====================================================
 
     elif existing_reaction.reaction == reaction_type:
 
-        # Do nothing.
-        #
-        # This is what prevents:
-        #
-        # Like → Like → Like → Like
-        #
-        # from increasing the count multiple times.
+        db.delete(existing_reaction)
 
-        return {
-            "success": True,
-            "message": "You have already reacted to this post",
-            "post_id": post.id,
-            "likes": post.likes or 0,
-            "dislikes": post.dislikes or 0,
-            "my_reaction": existing_reaction.reaction
-        }
+        if reaction_type == "like":
+            post.likes = max(0, (post.likes or 0) - 1)
+        else:
+            post.dislikes = max(0, (post.dislikes or 0) - 1)
+
+        final_reaction = None
 
     # =====================================================
-    # CHANGE LIKE → DISLIKE
+    # DIFFERENT REACTION -> SWITCH
     # =====================================================
 
     else:
@@ -305,29 +328,15 @@ def react_to_post(
 
         if old_reaction == "like":
 
-            post.likes = max(
-                0,
-                (post.likes or 0) - 1
-            )
-
-            post.dislikes = (
-                post.dislikes or 0
-            ) + 1
-
-        # =================================================
-        # CHANGE DISLIKE → LIKE
-        # =================================================
+            post.likes = max(0, (post.likes or 0) - 1)
+            post.dislikes = (post.dislikes or 0) + 1
 
         else:
 
-            post.dislikes = max(
-                0,
-                (post.dislikes or 0) - 1
-            )
+            post.dislikes = max(0, (post.dislikes or 0) - 1)
+            post.likes = (post.likes or 0) + 1
 
-            post.likes = (
-                post.likes or 0
-            ) + 1
+        final_reaction = reaction_type
 
     db.commit()
 
@@ -339,7 +348,7 @@ def react_to_post(
         "post_id": post.id,
         "likes": post.likes or 0,
         "dislikes": post.dislikes or 0,
-        "my_reaction": reaction_type
+        "my_reaction": final_reaction
     }
 
 
@@ -347,9 +356,7 @@ def react_to_post(
 # GET USER'S REACTION
 # =========================================================
 
-@router.get(
-    "/{post_id}/reaction"
-)
+@router.get("/{post_id}/reaction")
 def get_my_reaction(
     post_id: int,
     db: Session = Depends(get_db),
@@ -376,21 +383,12 @@ def get_my_reaction(
             detail="This post is not available in your state"
         )
 
-    reaction = (
-        db.query(PostReaction)
-        .filter(
-            PostReaction.user_id == current_user.id,
-            PostReaction.post_id == post_id
-        )
-        .first()
-    )
-
     return {
         "post_id": post_id,
-        "my_reaction": (
-            reaction.reaction
-            if reaction
-            else None
+        "my_reaction": get_user_reaction(
+            db,
+            current_user.id,
+            post_id
         )
     }
 
@@ -399,9 +397,7 @@ def get_my_reaction(
 # DELETE OWN POST
 # =========================================================
 
-@router.delete(
-    "/{post_id}"
-)
+@router.delete("/{post_id}")
 def delete_post(
     post_id: int,
     db: Session = Depends(get_db),
