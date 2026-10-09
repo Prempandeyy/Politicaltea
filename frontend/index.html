@@ -222,6 +222,19 @@ textarea.form-input{min-height:180px;resize:vertical;}
 .tea-input:focus{border-color:var(--violet);}
 .tea-send{width:42px;height:42px;border:0;border-radius:13px;background:var(--pink);color:white;cursor:pointer;font-size:17px;}
 .tea-send:disabled{opacity:.5;cursor:not-allowed;}
+.tea-bubble.rich{white-space:normal;}
+.tea-bubble.rich p{margin:0 0 8px;}
+.tea-bubble.rich ul,.tea-bubble.rich ol{margin:6px 0 8px 18px;}
+.tea-bubble.rich li{margin-bottom:5px;}
+.tea-bubble.rich strong{font-weight:800;}
+.tea-bubble.rich a{color:var(--violet);font-weight:700;text-decoration:underline;}
+.tea-bubble.rich>:last-child{margin-bottom:0;}
+.tea-sources{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;padding-top:8px;border-top:1px dashed var(--border);}
+.tea-source{font-size:10px;font-weight:800;background:#f3edff;color:var(--violet);padding:4px 8px;border-radius:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tea-followups{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:-2px 0 14px;}
+.tea-followups-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.tea-chip{border:1px solid var(--border);background:white;color:var(--ink);padding:8px 12px;border-radius:14px;font-size:12px;font-weight:700;text-align:left;line-height:1.35;}
+.tea-chip:hover{border-color:var(--violet);color:var(--violet);}
 @media (max-width:600px){
     .tea-fab{right:16px;bottom:75px;}
     .tea-chat{right:10px;left:10px;bottom:70px;width:auto;height:calc(100vh - 100px);max-height:650px;border-radius:20px;}
@@ -340,7 +353,7 @@ textarea.form-input{min-height:180px;resize:vertical;}
 <div class="section-head">
     <div>
         <h2>⚡ Last 24 Hours</h2>
-        <p>Fresh updates from people and creators</p>
+        <p>Fresh updates from people in your state (<span id="postsStateName">Uttar Pradesh</span>)</p>
     </div>
     <span class="see-all">Latest</span>
 </div>
@@ -620,7 +633,9 @@ let currentState = STATE_MAP[currentStateId] || "Uttar Pradesh";
 
 let stateContent = { news:[], videos:[] };
 
-let posts = JSON.parse(localStorage.getItem("pt_posts") || "[]");
+let posts = [];
+let postsLoading = !!localStorage.getItem("pt_token");
+let postsError = "";
 
 let editingPostId = null;
 
@@ -633,6 +648,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadCurrentUser();
     updateUserAvatar();
     updateStateUI();
+    loadPosts();
     await loadStateContent();
 });
 
@@ -1036,10 +1052,10 @@ function openCreateModal(){
 
 
 /* =====================================================
-   SAVE POST
+   SAVE POST (saved in database, visible to same-state users)
 ===================================================== */
 
-function savePost(){
+async function savePost(){
 
     const type = document.getElementById("postType").value;
     const title = document.getElementById("postTitle").value.trim();
@@ -1051,53 +1067,75 @@ function savePost(){
         return;
     }
 
-    if(!body){
+    if(!document.getElementById("postEditor").textContent.trim()){
         showToast("Please write something.");
         return;
     }
 
-    if(editingPostId){
+    const token = localStorage.getItem("pt_token");
 
-        const post = posts.find(p => p.id === editingPostId);
+    if(!token){
+        showToast("Please login to share your take.");
+        window.location.href = "login.html";
+        return;
+    }
 
-        if(post){
-            post.type = type;
-            post.title = title;
-            post.body = body;
-            post.image = image;
-            post.isHTML = true;
-            post.time = "Just now";
+    const publishButton = document.querySelector("#postModal .btn-pink");
+    publishButton.disabled = true;
+
+    const isEditing = !!editingPostId;
+
+    try{
+
+        const response = await fetch(
+            isEditing
+                ? `${API_BASE_URL}/api/posts/${editingPostId}`
+                : `${API_BASE_URL}/api/posts`,
+            {
+                method: isEditing ? "PUT" : "POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":`Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    type: type,
+                    title: title,
+                    body: sanitizeHTML(body),
+                    image: image || null
+                })
+            }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if(!response.ok){
+            throw new Error(
+                typeof data.detail === "string"
+                    ? data.detail
+                    : "Could not save your post."
+            );
         }
 
-        showToast("Post updated successfully.");
+        closeModal("postModal");
+
+        showToast(
+            isEditing
+                ? "Post updated successfully."
+                : "Your post is live for people in your state!"
+        );
+
+        await loadPosts();
+
+    }catch(error){
+
+        console.error("Save post error:", error);
+        showToast(error.message || "Could not save your post.");
+
+    }finally{
+
+        publishButton.disabled = false;
 
     }
-    else{
-
-        const currentUserName = getCurrentUserName();
-
-        posts.unshift({
-            id: Date.now(),
-            author: currentUserName,
-            user_id: getStoredUser().id ?? null,
-            type: type,
-            title: title,
-            body: body,
-            isHTML: true,
-            image: image,
-            time: "Just now",
-            likes: 0,
-            liked: false,
-            comments: []
-        });
-
-        showToast("Your post is live on Political Tea!");
-
-    }
-
-    savePosts();
-    renderPosts();
-    closeModal("postModal");
 
 }
 
@@ -1126,17 +1164,67 @@ function isPostOwner(post){
    RENDER USER POSTS
 ===================================================== */
 
+function formatPostTime(value){
+
+    if(!value){
+        return "Time unavailable";
+    }
+
+    let text = String(value);
+
+    // Backend sends UTC time without a timezone suffix -> treat it as UTC
+    if(/^\d{4}-\d{2}-\d{2}T[\d:.]+$/.test(text)){
+        text += "Z";
+    }
+
+    const date = new Date(text);
+
+    if(Number.isNaN(date.getTime())){
+        return String(value);
+    }
+
+    return date.toLocaleString("en-IN", {
+        day:"2-digit",
+        month:"short",
+        year:"numeric",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:true
+    });
+
+}
+
 function renderPosts(){
 
     const feed = document.getElementById("postFeed");
     feed.innerHTML = "";
 
+    const postsState = document.getElementById("postsStateName");
+    if(postsState){
+        postsState.textContent = STATE_MAP[getStoredUser().state_id] || currentState;
+    }
+
+    if(postsLoading){
+        feed.innerHTML = `<div class="loading">Loading posts from your state...</div>`;
+        return;
+    }
+
+    if(postsError){
+        feed.innerHTML = `<div class="error-box">${escapeHTML(postsError)}</div>`;
+        return;
+    }
+
     if(posts.length === 0){
+
+        const loggedIn = !!localStorage.getItem("pt_token");
+
         feed.innerHTML = `
             <div class="post">
-                <h3>No community posts yet.</h3>
+                <h3>${loggedIn ? "No posts in the last 24 hours." : "Login to see posts from your state."}</h3>
                 <p class="post-body">
-                    Be the first person to share what's brewing in ${escapeHTML(currentState)}.
+                    ${loggedIn
+                        ? "Be the first person to share what's brewing in your state."
+                        : "Posts are shared only between people from the same state."}
                 </p>
             </div>`;
         return;
@@ -1166,7 +1254,7 @@ function renderPosts(){
                     <div class="author-avatar">${escapeHTML(getAvatarLetter(post.author))}</div>
                     <div class="author-info">
                         <strong>${escapeHTML(post.author)}</strong>
-                        <span>${escapeHTML(post.time)} · ${escapeHTML(currentState)}</span>
+                        <span>${escapeHTML(formatPostTime(post.created_at))} · ${escapeHTML(STATE_MAP[post.state_id] || currentState)}</span>
                     </div>
                 </div>
                 <div class="post-type">${escapeHTML(post.type)}</div>
@@ -1175,7 +1263,7 @@ function renderPosts(){
             <h3>${escapeHTML(post.title)}</h3>
 
             <div class="post-body">
-                ${post.isHTML ? post.body : escapeHTML(post.body)}
+                ${sanitizeHTML(post.body)}
             </div>
 
             ${post.image ? `
@@ -1221,34 +1309,84 @@ function renderPosts(){
 
 
 /* =====================================================
-   LIKE / UNLIKE (toggle)
-   1st click = like, 2nd click = unlike, 3rd = like ...
+   LIKE / UNLIKE (toggle, saved in database)
 ===================================================== */
 
-function likePost(id, button){
+async function likePost(id, button){
+
+    const token = localStorage.getItem("pt_token");
+
+    if(!token){
+        showToast("Please login to like posts.");
+        return;
+    }
 
     const post = posts.find(p => Number(p.id) === Number(id));
     if(!post) return;
 
-    if(post.liked){
-        post.liked = false;
-        post.likes = Math.max((post.likes || 1) - 1, 0);
-    }else{
-        post.liked = true;
-        post.likes = (post.likes || 0) + 1;
+    button.disabled = true;
+
+    try{
+
+        const response = await fetch(
+            `${API_BASE_URL}/api/posts/${id}/reaction`,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":`Bearer ${token}`
+                },
+                body: JSON.stringify({ reaction:"like" })
+            }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if(!response.ok){
+            throw new Error(
+                typeof data.detail === "string"
+                    ? data.detail
+                    : "Could not update like."
+            );
+        }
+
+        post.likes = data.likes || 0;
+        post.dislikes = data.dislikes || 0;
+        post.my_reaction = data.my_reaction || null;
+        post.liked = post.my_reaction === "like";
+
+        button.classList.toggle("liked", post.liked);
+        button.innerHTML = `${post.liked ? "❤️" : "🤍"} <span>${post.likes}</span>`;
+
+    }catch(error){
+
+        console.error("Like error:", error);
+        showToast(error.message || "Could not update like.");
+
+    }finally{
+
+        button.disabled = false;
+
     }
-
-    savePosts();
-
-    button.classList.toggle("liked", post.liked);
-    button.innerHTML = `${post.liked ? "❤️" : "🤍"} <span>${post.likes}</span>`;
 
 }
 
 
 /* =====================================================
-   COMMENTS
+   COMMENTS (kept in this browser only)
 ===================================================== */
+
+function getStoredComments(){
+    try{
+        return JSON.parse(localStorage.getItem("pt_comments") || "{}");
+    }catch(error){
+        return {};
+    }
+}
+
+function saveStoredComments(map){
+    localStorage.setItem("pt_comments", JSON.stringify(map));
+}
 
 function toggleComments(id){
     const element = document.getElementById(`comments-${id}`);
@@ -1276,7 +1414,7 @@ function addComment(id){
         return;
     }
 
-    const post = posts.find(p => p.id === id);
+    const post = posts.find(p => Number(p.id) === Number(id));
     if(!post) return;
 
     if(!post.comments){
@@ -1285,7 +1423,10 @@ function addComment(id){
 
     post.comments.push({ name: getCurrentUserName(), text: text });
 
-    savePosts();
+    const map = getStoredComments();
+    map[post.id] = post.comments;
+    saveStoredComments(map);
+
     renderPosts();
 
     setTimeout(() => {
@@ -1296,8 +1437,7 @@ function addComment(id){
 
 
 /* =====================================================
-   DELETE (owner only)
-   Backend also verifies ownership (403 if not owner).
+   DELETE (owner only — backend verifies too)
 ===================================================== */
 
 async function deletePost(id){
@@ -1309,40 +1449,55 @@ async function deletePost(id){
         return;
     }
 
-    // Only the owner can delete
     if(!isPostOwner(post)){
         showToast("You can only delete your own posts.");
         return;
     }
 
-    if(!confirm("Delete this post permanently?")) return;
-
     const token = localStorage.getItem("pt_token");
 
-    if(token){
-        try{
-            const response = await fetch(
-                `${API_BASE_URL}/api/posts/${id}`,
-                {
-                    method: "DELETE",
-                    headers: { "Authorization": `Bearer ${token}` }
-                }
-            );
-
-            if(response.status === 403){
-                showToast("You can only delete your own posts.");
-                return;
-            }
-        }catch(error){
-            console.warn("Backend delete skipped:", error);
-        }
+    if(!token){
+        showToast("Please login first.");
+        return;
     }
 
-    posts = posts.filter(p => Number(p.id) !== Number(id));
+    if(!confirm("Delete this post permanently?")) return;
 
-    savePosts();
-    renderPosts();
-    showToast("Post deleted.");
+    try{
+
+        const response = await fetch(
+            `${API_BASE_URL}/api/posts/${id}`,
+            {
+                method:"DELETE",
+                headers:{ "Authorization":`Bearer ${token}` }
+            }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if(!response.ok){
+            throw new Error(
+                typeof data.detail === "string"
+                    ? data.detail
+                    : "Could not delete the post."
+            );
+        }
+
+        posts = posts.filter(p => Number(p.id) !== Number(id));
+
+        const map = getStoredComments();
+        delete map[id];
+        saveStoredComments(map);
+
+        renderPosts();
+        showToast("Post deleted.");
+
+    }catch(error){
+
+        console.error("Delete error:", error);
+        showToast(error.message || "Could not delete the post.");
+
+    }
 
 }
 
@@ -1353,7 +1508,7 @@ async function deletePost(id){
 
 function editPost(id){
 
-    const post = posts.find(p => p.id === id);
+    const post = posts.find(p => Number(p.id) === Number(id));
     if(!post) return;
 
     if(!isPostOwner(post)){
@@ -1361,12 +1516,12 @@ function editPost(id){
         return;
     }
 
-    editingPostId = id;
+    editingPostId = post.id;
 
     document.getElementById("modalTitle").textContent = "Edit your post";
     document.getElementById("postType").value = post.type;
     document.getElementById("postTitle").value = post.title;
-    document.getElementById("postEditor").innerHTML = post.body;
+    document.getElementById("postEditor").innerHTML = sanitizeHTML(post.body);
     document.getElementById("postImage").value = post.image || "";
     document.querySelector("#postModal .btn-pink").textContent = "Save Changes";
     document.getElementById("postModal").classList.add("show");
@@ -1375,11 +1530,80 @@ function editPost(id){
 
 
 /* =====================================================
-   SAVE POSTS
+   LOAD POSTS FROM BACKEND (same state + last 24 hours)
 ===================================================== */
 
-function savePosts(){
-    localStorage.setItem("pt_posts", JSON.stringify(posts));
+function mapServerPost(p, commentsMap){
+
+    return {
+        id: p.id,
+        user_id: p.user_id,
+        author: p.author || "User",
+        type: p.type || "Opinion",
+        title: p.title || "",
+        body: p.body || "",
+        image: p.image || "",
+        created_at: p.created_at,
+        state_id: p.state_id,
+        likes: p.likes || 0,
+        dislikes: p.dislikes || 0,
+        my_reaction: p.my_reaction || null,
+        liked: p.my_reaction === "like",
+        comments: commentsMap[p.id] || []
+    };
+
+}
+
+async function loadPosts(){
+
+    const token = localStorage.getItem("pt_token");
+
+    if(!token){
+        posts = [];
+        postsError = "";
+        postsLoading = false;
+        renderPosts();
+        return;
+    }
+
+    postsLoading = true;
+    postsError = "";
+    renderPosts();
+
+    try{
+
+        const response = await fetch(
+            `${API_BASE_URL}/api/posts`,
+            { headers:{ "Authorization":`Bearer ${token}` } }
+        );
+
+        const data = await response.json().catch(() => null);
+
+        if(!response.ok){
+            throw new Error(
+                data && typeof data.detail === "string"
+                    ? data.detail
+                    : `Server returned ${response.status}`
+            );
+        }
+
+        const commentsMap = getStoredComments();
+
+        posts = (Array.isArray(data) ? data : []).map(
+            p => mapServerPost(p, commentsMap)
+        );
+
+    }catch(error){
+
+        console.error("Load posts error:", error);
+        posts = [];
+        postsError = error.message || "Could not load posts.";
+
+    }
+
+    postsLoading = false;
+    renderPosts();
+
 }
 
 
@@ -1598,6 +1822,7 @@ async function saveProfile(){
 
         showToast("Profile updated successfully!");
 
+        loadPosts();
         await loadStateContent();
 
     }
@@ -1669,6 +1894,60 @@ function showToast(message){
     setTimeout(() => {
         toast.classList.remove("show");
     }, 2500);
+
+}
+
+/* Posts written by other users are shown to everyone,
+   so their HTML must be cleaned first (prevents XSS). */
+function sanitizeHTML(html){
+
+    const allowed = new Set([
+        "B","STRONG","I","EM","U","H2","H3","UL","OL","LI",
+        "BLOCKQUOTE","P","BR","DIV","SPAN"
+    ]);
+
+    const dropWithContent = new Set([
+        "SCRIPT","STYLE","IFRAME","OBJECT","EMBED","LINK","META","SVG","MATH"
+    ]);
+
+    const doc = new DOMParser().parseFromString(
+        `<div>${html || ""}</div>`,
+        "text/html"
+    );
+
+    const root = doc.body.firstChild;
+
+    (function clean(node){
+
+        [...node.childNodes].forEach(child => {
+
+            if(child.nodeType === 3) return;
+
+            if(child.nodeType !== 1){
+                child.remove();
+                return;
+            }
+
+            if(dropWithContent.has(child.tagName.toUpperCase())){
+                child.remove();
+                return;
+            }
+
+            if(!allowed.has(child.tagName)){
+                clean(child);
+                child.replaceWith(...child.childNodes);
+                return;
+            }
+
+            [...child.attributes].forEach(a => child.removeAttribute(a.name));
+
+            clean(child);
+
+        });
+
+    })(root);
+
+    return root.innerHTML;
 
 }
 
@@ -1756,7 +2035,62 @@ function updateTeaState(){
 
 }
 
-function addTeaMessage(role, message){
+function renderTeaMarkdown(text){
+
+    const inline = value => escapeHTML(value)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+            '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,
+            '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>');
+
+    const out = [];
+    let list = null;
+
+    const closeList = () => {
+        if(list){
+            out.push(`</${list}>`);
+            list = null;
+        }
+    };
+
+    String(text).split("\n").forEach(raw => {
+
+        const line = raw.trim();
+        let match;
+
+        if(!line){
+            closeList();
+        }
+        else if((match = line.match(/^[-•*]\s+(.*)$/))){
+            if(list !== "ul"){ closeList(); out.push("<ul>"); list = "ul"; }
+            out.push(`<li>${inline(match[1])}</li>`);
+        }
+        else if((match = line.match(/^\d+[.)]\s+(.*)$/))){
+            if(list !== "ol"){ closeList(); out.push("<ol>"); list = "ol"; }
+            out.push(`<li>${inline(match[1])}</li>`);
+        }
+        else if((match = line.match(/^#{1,6}\s+(.*)$/))){
+            closeList();
+            out.push(`<p><strong>${inline(match[1])}</strong></p>`);
+        }
+        else if(/^(-{3,}|\*{3,})$/.test(line)){
+            closeList();
+        }
+        else{
+            closeList();
+            out.push(`<p>${inline(line)}</p>`);
+        }
+
+    });
+
+    closeList();
+
+    return out.join("");
+
+}
+
+function addTeaMessage(role, message, options = {}){
 
     const container = document.getElementById("teaMessages");
     if(!container) return;
@@ -1766,11 +2100,78 @@ function addTeaMessage(role, message){
 
     const bubble = document.createElement("div");
     bubble.className = "tea-bubble";
-    bubble.textContent = message;
+
+    if(role === "assistant" && options.rich){
+
+        bubble.classList.add("rich");
+        bubble.innerHTML = renderTeaMarkdown(message);
+
+        const sources = (options.sources || []).filter(
+            item => item && /^https?:\/\//.test(item.url || "")
+        );
+
+        if(sources.length){
+
+            const box = document.createElement("div");
+            box.className = "tea-sources";
+
+            sources.forEach(item => {
+                const link = document.createElement("a");
+                link.className = "tea-source";
+                link.href = item.url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = "🔗 " + (item.title || item.url);
+                box.appendChild(link);
+            });
+
+            bubble.appendChild(box);
+
+        }
+
+    }
+    else{
+        bubble.textContent = message;
+    }
 
     wrapper.appendChild(bubble);
     container.appendChild(wrapper);
 
+    container.scrollTop = container.scrollHeight;
+
+}
+
+function clearTeaFollowups(){
+    document.querySelectorAll(".tea-followups").forEach(el => el.remove());
+}
+
+function addTeaFollowups(questions){
+
+    const container = document.getElementById("teaMessages");
+    if(!container || !Array.isArray(questions) || !questions.length) return;
+
+    clearTeaFollowups();
+
+    const box = document.createElement("div");
+    box.className = "tea-followups";
+
+    const label = document.createElement("div");
+    label.className = "tea-followups-label";
+    label.textContent = "You may also ask";
+    box.appendChild(label);
+
+    questions.slice(0,3).forEach(question => {
+
+        const chip = document.createElement("button");
+        chip.className = "tea-chip";
+        chip.textContent = "💬 " + question;
+        chip.addEventListener("click", () => askTeaSuggestion(question));
+
+        box.appendChild(chip);
+
+    });
+
+    container.appendChild(box);
     container.scrollTop = container.scrollHeight;
 
 }
@@ -1792,6 +2193,7 @@ async function sendTeaMessage(){
         return;
     }
 
+    clearTeaFollowups();
     addTeaMessage("user", message);
     input.value = "";
 
@@ -1834,7 +2236,12 @@ async function sendTeaMessage(){
 
         const answer = data.answer || "☕ I couldn't find enough information right now.";
 
-        addTeaMessage("assistant", answer);
+        addTeaMessage("assistant", answer, {
+            rich: true,
+            sources: data.sources || []
+        });
+
+        addTeaFollowups(data.suggestions || []);
 
         teaConversation.push({ role:"assistant", content:answer });
 
