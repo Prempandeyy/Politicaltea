@@ -1532,80 +1532,82 @@ function editPost(id){
 /* =====================================================
    LOAD POSTS FROM BACKEND (same state + last 24 hours)
 ===================================================== */
-
-function mapServerPost(p, commentsMap){
-
+function mapServerPost(p) {
     return {
         id: p.id,
-        user_id: p.user_id,
-        author: p.author || "User",
-        type: p.type || "Opinion",
-        title: p.title || "",
-        body: p.body || "",
-        image: p.image || "",
+        user_id: null,
+        author: p.author || "Bluesky User",
+        type: "Bluesky",
+        title: "",
+        body: p.text || "",
+        image: "",
         created_at: p.created_at,
-        state_id: p.state_id,
+        state_id: p.state_id ?? null,
         likes: p.likes || 0,
-        dislikes: p.dislikes || 0,
-        my_reaction: p.my_reaction || null,
-        liked: p.my_reaction === "like",
-        comments: commentsMap[p.id] || []
+        dislikes: 0,
+        my_reaction: null,
+        liked: false,
+        comments: [],
+        url: p.url || "",
+        handle: p.handle || "",
+        reposts: p.reposts || 0,
+        replies: p.replies || 0,
+        platform: "Bluesky"
     };
-
 }
 
-async function loadPosts(){
-
-    const token = localStorage.getItem("pt_token");
-
-    if(!token){
-        posts = [];
-        postsError = "";
-        postsLoading = false;
-        renderPosts();
-        return;
-    }
-
+async function loadPosts() {
     postsLoading = true;
     postsError = "";
     renderPosts();
 
-    try{
-
-        const response = await fetch(
-            `${API_BASE_URL}/api/posts`,
-            { headers:{ "Authorization":`Bearer ${token}` } }
+    try {
+        // Get selected state ID from the existing app
+        const stateId = Number(
+            window.selectedStateId ||
+            localStorage.getItem("pt_state_id") ||
+            1
         );
+
+        if (!Number.isInteger(stateId) || stateId < 1 || stateId > 12) {
+            throw new Error("Invalid state ID. Please select a state.");
+        }
+
+        const url =
+            `${API_BASE_URL}/api/bluesky/last-24-hours/${stateId}`;
+
+        const response = await fetch(url);
 
         const data = await response.json().catch(() => null);
 
-        if(!response.ok){
+        if (!response.ok) {
             throw new Error(
-                data && typeof data.detail === "string"
-                    ? data.detail
-                    : `Server returned ${response.status}`
+                data?.detail || `Server returned ${response.status}`
             );
         }
 
-        const commentsMap = getStoredComments();
+        const items = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.items)
+                ? data.items
+                : [];
 
-        posts = (Array.isArray(data) ? data : []).map(
-            p => mapServerPost(p, commentsMap)
-        );
+        posts = items.map(mapServerPost);
 
-    }catch(error){
+        if (posts.length === 0) {
+            postsError = data?.message ||
+                "No Bluesky posts found for this state in the last 24 hours.";
+        }
 
-        console.error("Load posts error:", error);
+    } catch (error) {
+        console.error("Bluesky posts error:", error);
         posts = [];
-        postsError = error.message || "Could not load posts.";
-
+        postsError = error.message || "Could not load Bluesky posts.";
+    } finally {
+        postsLoading = false;
+        renderPosts();
     }
-
-    postsLoading = false;
-    renderPosts();
-
 }
-
 
 /* =====================================================
    EDITOR
